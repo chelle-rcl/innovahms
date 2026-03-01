@@ -1,0 +1,194 @@
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import { Mail, Lock, Phone, Eye, EyeOff, UserPlus } from "lucide-react";
+
+export default function SignUp() {
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    contactNumber: "",
+    password: "",
+    confirmPassword: "",
+  });
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+    if (error) setError(""); 
+  };
+
+  const validatePHMobile = (number) => {
+    const phRegex = /^(09|\+639)\d{9}$/;
+    return phRegex.test(number.replace(/\s/g, ""));
+  };
+
+  const handleSignUp = (e) => {
+    e.preventDefault();
+    if (!validatePHMobile(formData.contactNumber)) {
+      setError("Please enter a valid PH mobile number (e.g., 09171234567)");
+      return;
+    }
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match!");
+      return;
+    }
+    setError("");
+    console.log("Registering user:", formData);
+  };
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-slate-100 px-4 py-4 sm:px-6">
+      
+      <div className="flex w-full max-w-5xl max-h-[92vh] -mt-20 overflow-hidden rounded-3xl border border-white/30 bg-white shadow-2xl backdrop-blur-md transition-all duration-500">
+        
+        {/* Left Side: Image*/}
+        <div className="relative hidden w-1/2 lg:block group">
+          <img 
+            src="/images/signup-img.png" 
+            alt="Hotel Luxury" 
+            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/70" />
+
+          <div className="absolute bottom-12 left-10 right-10">
+            <div className="overflow-hidden">
+              <p className="text-white/90 text-[10px] uppercase tracking-[0.4em] mb-3 animate-pulse font-bold">
+                Welcome to Excellence
+              </p>
+            </div>
+            <h1 className="text-4xl font-extrabold text-white leading-[1.1] tracking-tight">
+              Smart <span className="text-[#bf9b30]">Hospitality</span> <br /> 
+              Starts Here.
+            </h1>
+            <div className="mt-6 h-1.5 w-16 bg-[#bf9b30] rounded-full shadow-lg shadow-[#bf9b30]/20" />
+          </div>
+        </div>
+
+        {/* Right Side: Form */}
+        <div className="w-full p-6 sm:p-8 lg:p-10 lg:w-1/2 overflow-y-auto custom-scrollbar">
+          <div className="text-center lg:text-left">
+            <h2 className="text-2xl font-black tracking-tight text-[#bf9b30]">Create Account</h2>
+          </div>
+
+          {error && (
+            <div className="mt-3 rounded-lg bg-red-50 p-2 text-center text-[11px] font-bold text-red-600 border border-red-200">
+              {error}
+            </div>
+          )}
+
+          <form className="mt-6 space-y-4" onSubmit={handleSignUp}>
+            <div className="flex gap-3">
+              <div className="flex-1">
+                {/* Bumped to text-slate-800 for high visibility */}
+                <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-800 mb-1.5">First Name</label>
+                <input
+                  name="firstName"
+                  type="text"
+                  required
+                  className="block w-full rounded-xl border border-slate-300 bg-white py-2 px-4 text-sm text-slate-900 focus:border-[#bf9b30] focus:ring-2 focus:ring-[#bf9b30]/10 outline-none transition-all"
+                  placeholder="John"
+                  onChange={handleChange}
+                />
+              </div>
+              <div className="flex-1">
+                <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-800 mb-1.5">Last Name</label>
+                <input
+                  name="lastName"
+                  type="text"
+                  required
+                  className="block w-full rounded-xl border border-slate-300 bg-white py-2 px-4 text-sm text-slate-900 focus:border-[#bf9b30] focus:ring-2 focus:ring-[#bf9b30]/10 outline-none transition-all"
+                  placeholder="Doe"
+                  onChange={handleChange}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-800 mb-1.5">Contact Number</label>
+              <div className="relative">
+                {/* Darkened icon color */}
+                <Phone size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                <input
+                  name="contactNumber"
+                  type="tel"
+                  required
+                  className="block w-full rounded-xl border border-slate-300 bg-white py-2 pl-10 pr-4 text-sm text-slate-900 focus:border-[#bf9b30] focus:ring-2 focus:ring-[#bf9b30]/10 outline-none transition-all"
+                  placeholder="09171234567"
+                  onChange={handleChange}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-800 mb-1.5">Email Address</label>
+              <div className="relative">
+                <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                <input
+                  name="email"
+                  type="email"
+                  required
+                  className="block w-full rounded-xl border border-slate-300 bg-white py-2 pl-10 pr-4 text-sm text-slate-900 focus:border-[#bf9b30] focus:ring-2 focus:ring-[#bf9b30]/10 outline-none transition-all"
+                  placeholder="name@company.com"
+                  onChange={handleChange}
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <div className="flex-1">
+                <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-800 mb-1.5">Password</label>
+                <div className="relative">
+                  <input
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    required
+                    className="block w-full rounded-xl border border-slate-300 bg-white py-2 px-4 text-sm text-slate-900 focus:border-[#bf9b30] focus:ring-2 focus:ring-[#bf9b30]/10 outline-none transition-all"
+                    placeholder="••••••••"
+                    onChange={handleChange}
+                  />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-800">
+                    {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                  </button>
+                </div>
+              </div>
+              <div className="flex-1">
+                <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-800 mb-1.5">Confirm Password</label>
+                <input
+                  name="confirmPassword"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  className="block w-full rounded-xl border border-slate-300 bg-white py-2 px-4 text-sm text-slate-900 focus:border-[#bf9b30] focus:ring-2 focus:ring-[#bf9b30]/10 outline-none transition-all"
+                  placeholder="••••••••"
+                  onChange={handleChange}
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              className="group w-full flex items-center justify-center gap-2 rounded-xl bg-[#bf9b30] py-3 text-sm font-black text-white shadow-xl transition-all hover:bg-[#a6882d] hover:shadow-yellow-700/20 active:scale-[0.98] mt-4"
+            >
+              Create Account
+              <UserPlus size={16} className="transition-transform group-hover:scale-110" />
+            </button>
+          </form>
+
+          <div className="mt-6 border-t border-slate-200 pt-5 text-center">
+            <p className="text-xs font-medium text-slate-800">
+              Already have an account?{" "}
+              <Link 
+                to="/login" 
+                className="text-[#bf9b30] transition-colors hover:text-[#a6882d] hover:underline hover:decoration-2 hover:underline-offset-4"
+              >
+                Log In
+              </Link>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
