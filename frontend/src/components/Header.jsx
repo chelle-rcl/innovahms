@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 
 export default function Header() {
   return (
-    <header className="sticky top-0 z-50 border-b border-innova-sky/70 bg-innova-light/90 backdrop-blur-sm">
+    <header className="sticky top-0 z-50 border-b border-innova-gold/70 bg-innova-white/90 backdrop-blur-sm">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
         
         {/* Left: Logo */}
@@ -48,7 +48,7 @@ export default function Header() {
           
           <Link 
             to="/signup" 
-            className="rounded-[50px] bg-innova-blue px-4 py-1.5 text-sm font-semibold text-white 
+            className="rounded-[50px] bg-innova-gold px-4 py-1.5 text-sm font-semibold text-white 
                       transition-all duration-300 shadow-sm 
                       hover:-translate-y-[2px] hover:shadow-md"
           >

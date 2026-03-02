@@ -5,12 +5,14 @@ import Footer from "./components/Footer";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
+import Booking from "./pages/Booking";
 
 function App() {
   return (
     <Router>
-      <div className="min-h-screen flex flex-col bg-innova-light text-slate-900">
+      <div className="min-h-screen flex flex-col bg-innova-white text-slate-900">
         <Header />
+
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/features" element={<div className="p-20 text-center">Features Coming Soon</div>} />
@@ -18,6 +20,7 @@ function App() {
           <Route path="/about" element={<div className="p-20 text-center">About Us Coming Soon</div>} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
+          <Route path="/booking" element={<Booking />} />
         </Routes>
 
         <Footer />
