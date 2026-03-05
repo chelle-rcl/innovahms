@@ -25,18 +25,35 @@ export default function SignUp() {
     return phRegex.test(number.replace(/\s/g, ""));
   };
 
-  const handleSignUp = (e) => {
+  const handleSignUp = async (e) => {
     e.preventDefault();
-    if (!validatePHMobile(formData.contactNumber)) {
-      setError("Please enter a valid PH mobile number (e.g., 09171234567)");
-      return;
-    }
+    
+    // Validation checks...
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords do not match!");
       return;
     }
-    setError("");
-    console.log("Registering user:", formData);
+
+    try {
+      const response = await fetch("http://127.0.0.1:5000/api/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert("Account created! You can now log in.");
+        // Optional: Redirect to login page here
+      } else {
+        setError(result.error || "Registration failed.");
+      }
+    } catch (err) {
+      setError("Cannot connect to the server. Is Flask running?");
+    }
   };
 
   return (
@@ -82,7 +99,6 @@ export default function SignUp() {
           <form className="mt-6 space-y-4" onSubmit={handleSignUp}>
             <div className="flex gap-3">
               <div className="flex-1">
-                {/* Bumped to text-slate-800 for high visibility */}
                 <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-800 mb-1.5">First Name</label>
                 <input
                   name="firstName"
@@ -109,7 +125,6 @@ export default function SignUp() {
             <div>
               <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-800 mb-1.5">Contact Number</label>
               <div className="relative">
-                {/* Darkened icon color */}
                 <Phone size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
                 <input
                   name="contactNumber"

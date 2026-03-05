@@ -1,15 +1,43 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState(""); // State for error messages
+  const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    console.log("Logging in with:", { email, password });
+    setError(""); // Reset error on new attempt
+
+    try {
+      const response = await fetch("http://127.0.0.1:5000/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Save user data (Name and Email) to LocalStorage
+        localStorage.setItem("user", JSON.stringify(data.user));
+        
+        alert(`Welcome back, ${data.user.firstName}!`);
+        
+        // Navigate home and refresh to let the Header see the new data
+        navigate("/");
+        window.location.reload(); 
+      } else {
+        // Show the error message returned by the backend (e.g. "Invalid email or password")
+        setError(data.error || "Invalid email or password.");
+      }
+    } catch (err) {
+      setError("Cannot connect to server. Ensure Flask is running.");
+    }
   };
 
   return (
@@ -73,6 +101,16 @@ export default function Login() {
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
+
+            {/* Error display — sits tight under password field */}
+            {error && (
+              <p className="mt-2 text-red-500 text-xs font-medium flex items-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                {error}
+              </p>
+            )}
           </div>
 
           <button
