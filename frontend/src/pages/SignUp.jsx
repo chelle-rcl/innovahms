@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Mail, Lock, Phone, Eye, EyeOff, UserPlus } from "lucide-react";
 
 export default function SignUp() {
@@ -14,42 +14,56 @@ export default function SignUp() {
 
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-    if (error) setError(""); 
-  };
-
-  const validatePHMobile = (number) => {
-    const phRegex = /^(09|\+639)\d{9}$/;
-    return phRegex.test(number.replace(/\s/g, ""));
+    if (error) setError("");
   };
 
   const handleSignUp = async (e) => {
     e.preventDefault();
-    
-    // Validation checks...
+
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords do not match!");
       return;
     }
 
     try {
-      const response = await fetch("http://127.0.0.1:5000/api/signup", {
+      // Step 1: Create the account
+      const signupResponse = await fetch("http://127.0.0.1:5000/api/signup", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
 
-      const result = await response.json();
+      const signupResult = await signupResponse.json();
 
-      if (response.ok) {
-        alert("Account created! You can now log in.");
-        // Optional: Redirect to login page here
+      if (!signupResponse.ok) {
+        setError(signupResult.error || "Registration failed.");
+        return;
+      }
+
+      // Step 2: Auto-login with the same credentials
+      const loginResponse = await fetch("http://127.0.0.1:5000/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
+
+      const loginResult = await loginResponse.json();
+
+      if (loginResponse.ok) {
+        // Step 3: Save user and redirect to homepage
+        localStorage.setItem("user", JSON.stringify(loginResult.user));
+        window.dispatchEvent(new Event("userUpdated"));
+        navigate("/");
       } else {
-        setError(result.error || "Registration failed.");
+        // Account was created but auto-login failed — fall back to login page
+        navigate("/login");
       }
     } catch (err) {
       setError("Cannot connect to the server. Is Flask running?");
@@ -91,9 +105,12 @@ export default function SignUp() {
           </div>
 
           {error && (
-            <div className="mt-3 rounded-lg bg-red-50 p-2 text-center text-[11px] font-bold text-red-600 border border-red-200">
+            <p className="mt-3 text-red-500 text-xs font-medium flex items-center gap-1">
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
               {error}
-            </div>
+            </p>
           )}
 
           <form className="mt-6 space-y-4" onSubmit={handleSignUp}>
