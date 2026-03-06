@@ -49,6 +49,7 @@ const Profile = () => {
 
       if (response.ok) {
         localStorage.setItem("user", JSON.stringify(userInfo));
+        window.dispatchEvent(new Event("userUpdated"));
         triggerToast("Profile information updated!");
       } else {
         triggerToast("Update failed. Please try again.", "error");

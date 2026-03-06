@@ -26,8 +26,6 @@ export default function Login() {
         // Save user data (Name and Email) to LocalStorage
         localStorage.setItem("user", JSON.stringify(data.user));
         
-        alert(`Welcome back, ${data.user.firstName}!`);
-        
         // Navigate home and refresh to let the Header see the new data
         navigate("/");
         window.location.reload(); 

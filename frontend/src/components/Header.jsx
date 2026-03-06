@@ -7,12 +7,22 @@ export default function Header() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const navigate = useNavigate();
 
-  // Check LocalStorage when the component loads
-  useEffect(() => {
+  const loadUser = () => {
     const savedUser = localStorage.getItem("user");
     if (savedUser) {
       setUser(JSON.parse(savedUser));
+    } else {
+      setUser(null);
     }
+  };
+
+  useEffect(() => {
+    // Load user on mount
+    loadUser();
+
+    // Listen for profile updates fired by Profile.jsx
+    window.addEventListener("userUpdated", loadUser);
+    return () => window.removeEventListener("userUpdated", loadUser);
   }, []);
 
   const handleLogout = () => {
@@ -45,7 +55,6 @@ export default function Header() {
         <div className="flex items-center gap-3">
           {user ? (
             <div className="relative">
-              {/* User Toggle Button */}
               <button 
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                 className="flex items-center gap-2 rounded-full border border-innova-gold/50 bg-white px-4 py-2 text-sm font-semibold text-[#bf9b30] shadow-sm transition-all hover:shadow-md"
@@ -57,7 +66,6 @@ export default function Header() {
                 <ChevronDown size={14} className={`transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
 
-              {/* Dropdown Menu */}
               {isDropdownOpen && (
                 <div className="absolute right-0 mt-2 w-48 rounded-xl border border-slate-200 bg-white py-2 shadow-xl ring-1 ring-black/5">
                   <Link 
