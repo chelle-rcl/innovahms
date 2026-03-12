@@ -1,9 +1,29 @@
-import React from 'react';
-import { Outlet } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Outlet, useNavigate } from 'react-router-dom';
 import AdminSidebar from '../components/AdminSidebar';
 import AdminHeader from '../components/AdminHeader';
 
 const AdminLayout = () => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const session = localStorage.getItem('adminSession');
+    if (!session) {
+      navigate('/admin/login', { replace: true });
+      return;
+    }
+    try {
+      const parsed = JSON.parse(session);
+      if (!parsed?.email) {
+        localStorage.removeItem('adminSession');
+        navigate('/admin/login', { replace: true });
+      }
+    } catch {
+      localStorage.removeItem('adminSession');
+      navigate('/admin/login', { replace: true });
+    }
+  }, [navigate]);
+
   return (
     <div className="flex h-screen bg-gray-50">
       <AdminSidebar />

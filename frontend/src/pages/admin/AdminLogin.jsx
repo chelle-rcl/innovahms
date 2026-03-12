@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-const InputField = ({ label, type, icon, placeholder, isFocused, onFocus, onBlur, children }) => (
+const InputField = ({ label, type, icon, placeholder, value, onChange, isFocused, onFocus, onBlur, children }) => (
   <div className="group">
     <label className={`block text-[10px] font-bold tracking-[0.25em] uppercase mb-2.5 transition-colors ${isFocused ? 'text-[#9a7a20]' : 'text-black/70'}`}>
       {label}
@@ -12,6 +13,8 @@ const InputField = ({ label, type, icon, placeholder, isFocused, onFocus, onBlur
       <input
         type={type}
         placeholder={placeholder}
+        value={value}
+        onChange={onChange}
         onFocus={onFocus}
         onBlur={onBlur}
         className="w-full py-4 pl-12 pr-12 bg-transparent border-none outline-none text-[#1a1208] text-sm font-medium placeholder:text-black/30"
@@ -21,12 +24,72 @@ const InputField = ({ label, type, icon, placeholder, isFocused, onFocus, onBlur
   </div>
 );
 
+const ADMIN_SESSION_KEY = 'adminSession';
 const AdminLogin = () => {
+  const navigate = useNavigate();
   const [focused, setFocused] = useState(null);
   const [loaded, setLoaded] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [feedback, setFeedback] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    if (isSubmitting) return;
+    setFeedback('');
+
+    if (!formData.email || !formData.password) {
+      setFeedback('Email and password are required.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const response = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+      const data = await response.json();
+
+      if (response.ok) {
+        const adminInfo = data?.admin || {};
+        const sessionPayload = {
+          id: adminInfo.id,
+          name: adminInfo.name,
+          email: adminInfo.email,
+          lastLogin: new Date().toISOString()
+        };
+        localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(sessionPayload));
+        navigate('/admin');
+        return;
+      }
+      setFeedback(data.error || 'Invalid email or password.');
+    } catch (error) {
+      setFeedback('Unable to reach the server. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   useEffect(() => { setTimeout(() => setLoaded(true), 100); }, []);
+
+  useEffect(() => {
+    const storedSession = localStorage.getItem(ADMIN_SESSION_KEY);
+    if (!storedSession) return;
+
+    try {
+      const parsed = JSON.parse(storedSession);
+      if (parsed?.email) {
+        navigate('/admin');
+      } else {
+        localStorage.removeItem(ADMIN_SESSION_KEY);
+      }
+    } catch {
+      localStorage.removeItem(ADMIN_SESSION_KEY);
+    }
+  }, [navigate]);
 
   const transitionClass = `transition-all duration-1000 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`;
 
@@ -75,18 +138,33 @@ const AdminLogin = () => {
           
           <div className="h-px bg-gradient-to-r from-[#bf9b30]/40 via-[#bf9b30]/10 to-transparent mb-10" />
 
-          <form className="flex flex-col gap-6" onSubmit={(e) => e.preventDefault()}>
+          <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
+            {/* Email Field */}
             <InputField 
-              label="Email Address" type="email" placeholder="admin@company.com"
-              isFocused={focused === 'email'} onFocus={() => setFocused('email')} onBlur={() => setFocused(null)}
+              label="Email Address" 
+              type="email" 
+              placeholder="admin@company.com"
+              isFocused={focused === 'email'} 
+              onFocus={() => setFocused('email')} 
+              onBlur={() => setFocused(null)}
+              value={formData.email}
+              onChange={(event) => setFormData((prev) => ({ ...prev, email: event.target.value }))}
               icon={<svg className="w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>}
             />
 
+            {/* Password Field */}
             <InputField 
-              label="Password" type={showPassword ? 'text' : 'password'} placeholder="••••••••••••"
-              isFocused={focused === 'pass'} onFocus={() => setFocused('pass')} onBlur={() => setFocused(null)}
+              label="Password" 
+              type={showPassword ? 'text' : 'password'} 
+              placeholder="••••••••••••"
+              isFocused={focused === 'pass'} 
+              onFocus={() => setFocused('pass')} 
+              onBlur={() => setFocused(null)}
+              value={formData.password}
+              onChange={(event) => setFormData((prev) => ({ ...prev, password: event.target.value }))}
               icon={<svg className="w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>}
             >
+              {/* Password Toggle Button */}
               <button 
                 type="button" 
                 onClick={() => setShowPassword(!showPassword)} 
@@ -98,9 +176,23 @@ const AdminLogin = () => {
                   <svg className="w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                 )}
               </button>
+
+              {/* Error display — now nested inside the InputField container */}
+              {feedback && (
+                <p className="absolute -bottom-6 left-0 text-red-500 text-[11px] font-medium flex items-center gap-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                  </svg>
+                  {feedback}
+                </p>
+              )}
             </InputField>
 
-            <button className="mt-2 w-full py-[18px] rounded-xl text-white text-[11px] font-bold tracking-[0.2em] uppercase flex items-center justify-center gap-3 bg-[linear-gradient(135deg,#bf9b30_0%,#d4af37_50%,#bf9b30_100%)] bg-[length:200%_100%] hover:bg-[100%_0] hover:-translate-y-0.5 shadow-lg shadow-[#bf9b30]/25 transition-all duration-300 active:scale-[0.98]">
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className={`mt-4 w-full py-[18px] rounded-xl text-white text-[11px] font-bold tracking-[0.2em] uppercase flex items-center justify-center gap-3 bg-[linear-gradient(135deg,#bf9b30_0%,#d4af37_50%,#bf9b30_100%)] bg-[length:200%_100%] hover:bg-[100%_0] hover:-translate-y-0.5 shadow-lg shadow-[#bf9b30]/25 transition-all duration-300 active:scale-[0.98] ${isSubmitting ? 'opacity-70 pointer-events-none' : ''}`}
+            >
               Secure Login 
               <svg className="w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
             </button>
