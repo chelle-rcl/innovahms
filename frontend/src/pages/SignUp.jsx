@@ -31,7 +31,7 @@ export default function SignUp() {
 
     try {
       // Step 1: Create the account
-      const signupResponse = await fetch("http://127.0.0.1:5000/api/signup", {
+      const signupResponse = await fetch("/api/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -45,7 +45,7 @@ export default function SignUp() {
       }
 
       // Step 2: Auto-login with the same credentials
-      const loginResponse = await fetch("http://127.0.0.1:5000/api/login", {
+      const loginResponse = await fetch("/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

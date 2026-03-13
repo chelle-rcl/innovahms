@@ -41,7 +41,7 @@ const Profile = () => {
 
   const handleUpdateInfo = async () => {
     try {
-      const response = await fetch("http://127.0.0.1:5000/api/user/update", {
+      const response = await fetch("/api/user/update", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(userInfo),
@@ -77,7 +77,7 @@ const Profile = () => {
     }
 
     try {
-      const response = await fetch("http://127.0.0.1:5000/api/user/change-password", {
+      const response = await fetch("/api/user/change-password", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
