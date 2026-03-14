@@ -5,7 +5,6 @@ const OwnerHeader = () => {
   const location = useLocation();
   const navigate = useNavigate();
   
-  // State for both personal name and hotel name
   const [ownerInfo, setOwnerInfo] = useState({
     fullName: 'Hotel Owner',
     hotelName: 'Property Management'
@@ -17,10 +16,6 @@ const OwnerHeader = () => {
     if (sessionData) {
       try {
         const parsedData = JSON.parse(sessionData);
-        
-        // Combine firstName and lastName for display
-        // Note: 'hotelName' will need to be added to your session payload 
-        // in OwnerLogin.jsx if you want it to appear here immediately.
         if (parsedData) {
           setOwnerInfo({
             fullName: `${parsedData.firstName} ${parsedData.lastName}`,
@@ -56,21 +51,28 @@ const OwnerHeader = () => {
   return (
     <header className="h-20 bg-white/80 backdrop-blur-md border-b border-black/5 flex items-center justify-between px-10 sticky top-0 z-40">
       
-      {/* Left Side: Page Title & Property Name */}
-      <div className="flex flex-col">
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] font-bold tracking-[0.2em] text-[#bf9b30] opacity-70 uppercase">
-            {ownerInfo.hotelName}
-          </span>
-          <div className="w-1.5 h-1.5 rounded-full bg-black/10" />
-          <span className="text-[10px] font-bold tracking-[0.2em] text-black/40 uppercase">
-            {pageTitle}
-          </span>
+      {/* Left Side: Premium Hotel Branding */}
+        <div className="flex items-center gap-4 flex-1 min-w-0">
+          {/* Decorative Vertical Brand Bar */}
+          <div className="shrink-0 w-1 h-10 bg-gradient-to-b from-[#bf9b30] to-[#8e7223] rounded-full opacity-80" />
+
+          <div className="flex flex-col min-w-0 overflow-hidden">
+            <div className="flex items-center gap-2">
+              <span className="text-[9px] font-black tracking-[0.3em] text-[#bf9b30] uppercase whitespace-nowrap">
+                Management Portal
+              </span>
+            </div>
+            
+            <h2 
+              className="text-xl md:text-2xl font-bold tracking-tight mt-0.5 font-serif truncate"
+              title={ownerInfo.hotelName}
+            >
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-slate-900 via-slate-700 to-slate-900">
+                {ownerInfo.hotelName}
+              </span>
+            </h2>
+          </div>
         </div>
-        <h2 className="text-xl font-bold text-slate-800 tracking-tight mt-0.5">
-          Welcome back, {ownerInfo.fullName.split(' ')[0]}
-        </h2>
-      </div>
 
       {/* Right Side: Profile Group */}
       <div className="flex items-center gap-6">

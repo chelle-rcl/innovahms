@@ -16,7 +16,27 @@ export default function OwnerSignUp() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
-      if (res.ok) navigate('/owner/login');
+      
+      const data = await res.json();
+
+      if (res.ok) {
+        // Create the session immediately
+        const sessionPayload = {
+          id: data.owner.id,
+          firstName: data.owner.firstName,
+          lastName: data.owner.lastName,
+          email: data.owner.email,
+          hotelName: data.owner.hotelName,
+          lastLogin: new Date().toISOString()
+        };
+
+        localStorage.setItem('ownerSession', JSON.stringify(sessionPayload));
+        
+        // Redirect directly to the dashboard index
+        navigate('/owner'); 
+      } else {
+        alert(data.error || "Signup failed.");
+      }
     } catch (err) {
       alert("Signup failed. Please try again.");
     }

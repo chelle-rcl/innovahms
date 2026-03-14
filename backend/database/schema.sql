@@ -31,3 +31,14 @@ CREATE TABLE IF NOT EXISTS hotels (
     hotel_address TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- 4. Rooms Table
+CREATE TABLE IF NOT EXISTS rooms (
+    id SERIAL PRIMARY KEY,
+    hotel_id INTEGER REFERENCES hotels(id) ON DELETE CASCADE,
+    room_number VARCHAR(20) NOT NULL,
+    room_type VARCHAR(50) CHECK (room_type IN ('Single', 'Double', 'Suite', 'Deluxe')),
+    price_per_night DECIMAL(10, 2) NOT NULL,
+    status VARCHAR(20) DEFAULT 'Available' CHECK (status IN ('Available', 'Occupied', 'Maintenance', 'Cleaning')),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

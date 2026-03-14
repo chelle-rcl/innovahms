@@ -127,7 +127,7 @@ export default function Header() {
                     <Link to="/signup" onClick={closeAll} className="flex items-center gap-2 px-4 py-3 text-sm text-slate-700 hover:bg-slate-50">
                       <Users size={16} className="text-innova-gold" /> Signup as Customer
                     </Link>
-                    <Link to="/signup/owner" onClick={closeAll} className="flex items-center gap-2 px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 border-t border-slate-100">
+                    <Link to="/owner/signup" onClick={closeAll} className="flex items-center gap-2 px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 border-t border-slate-100">
                       <Building2 size={16} className="text-innova-gold" /> Signup as Hotel Owner
                     </Link>
                   </div>

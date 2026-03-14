@@ -150,7 +150,18 @@ def owner_signup():
         conn.commit()
         cur.close()
         conn.close()
-        return jsonify({"message": "Owner and Hotel registered successfully!"}), 201
+
+        # UPDATED: Return owner data so the frontend can log them in immediately
+        return jsonify({
+            "message": "Owner and Hotel registered successfully!",
+            "owner": {
+                "id": owner_id,
+                "firstName": f_name,
+                "lastName": l_name,
+                "email": email,
+                "hotelName": hotel_name
+            }
+        }), 201
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
@@ -202,6 +213,94 @@ def change_password():
         cur.close()
         conn.close()
         return jsonify({"message": msg}), status
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+# --- ROOM MANAGEMENT ENDPOINTS ---
+
+@app.route('/api/owner/rooms/<int:hotel_id>', methods=['GET'])
+def get_rooms(hotel_id):
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT id, room_number, room_type, price_per_night, status FROM rooms WHERE hotel_id = %s ORDER BY room_number", (hotel_id,))
+        rooms = cur.fetchall()
+        cur.close()
+        conn.close()
+        
+        room_list = []
+        for r in rooms:
+            room_list.append({
+                "id": r[0], "roomNumber": r[1], "roomType": r[2], "price": float(r[3]), "status": r[4]
+            })
+        return jsonify(room_list), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/owner/rooms/add', methods=['POST'])
+def add_room():
+    data = request.json
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute(
+            "INSERT INTO rooms (hotel_id, room_number, room_type, price_per_night, status) VALUES (%s, %s, %s, %s, %s)",
+            (data['hotelId'], data['roomNumber'], data['roomType'], data['price'], 'Available')
+        )
+        conn.commit()
+        cur.close()
+        conn.close()
+        return jsonify({"message": "Room added successfully!"}), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+@app.route('/api/owner/rooms/update-status', methods=['PUT'])
+def update_room_status():
+    data = request.json
+    room_id = data.get('roomId')
+    new_status = data.get('status')
+
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute(
+            "UPDATE rooms SET status = %s WHERE id = %s",
+            (new_status, room_id)
+        )
+        conn.commit()
+        cur.close()
+        conn.close()
+        return jsonify({"message": f"Room status updated to {new_status}"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+    
+@app.route('/api/owner/rooms/update/<int:room_id>', methods=['PUT'])
+def update_room(room_id):
+    data = request.json
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute(
+            "UPDATE rooms SET room_number = %s, room_type = %s, price_per_night = %s WHERE id = %s",
+            (data['roomNumber'], data['roomType'], data['price'], room_id)
+        )
+        conn.commit()
+        cur.close()
+        conn.close()
+        return jsonify({"message": "Room updated successfully!"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+    
+@app.route('/api/owner/rooms/delete/<int:room_id>', methods=['DELETE'])
+def delete_room(room_id):
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("DELETE FROM rooms WHERE id = %s", (room_id,))
+        conn.commit()
+        cur.close()
+        conn.close()
+        return jsonify({"message": "Room deleted successfully"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 

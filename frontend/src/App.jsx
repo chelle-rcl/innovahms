@@ -46,7 +46,7 @@ function App() {
         {/* --- OWNER AUTH (No Sidebar) --- */}
         <Route path="/owner/login" element={<OwnerLogin />} />
         {/* Add this line here */}
-        <Route path="/signup/owner" element={<OwnerSignUp />} />
+        <Route path="/owner/signup" element={<OwnerSignUp />} />
 
         {/* --- OWNER PROTECTED ROUTES (With Sidebar) --- */}
         <Route path="/owner" element={<OwnerLayout />}>
