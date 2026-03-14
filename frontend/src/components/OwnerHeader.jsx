@@ -1,72 +1,88 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-const AdminHeader = () => {
+const OwnerHeader = () => {
   const location = useLocation();
   const navigate = useNavigate();
   
-  const [adminName, setAdminName] = useState('Administrator');
+  // State for both personal name and hotel name
+  const [ownerInfo, setOwnerInfo] = useState({
+    fullName: 'Hotel Owner',
+    hotelName: 'Property Management'
+  });
 
   useEffect(() => {
-    const sessionData = localStorage.getItem('adminSession');
+    const sessionData = localStorage.getItem('ownerSession'); 
     
     if (sessionData) {
       try {
         const parsedData = JSON.parse(sessionData);
         
-        if (parsedData && parsedData.name) {
-          setAdminName(parsedData.name);
+        // Combine firstName and lastName for display
+        // Note: 'hotelName' will need to be added to your session payload 
+        // in OwnerLogin.jsx if you want it to appear here immediately.
+        if (parsedData) {
+          setOwnerInfo({
+            fullName: `${parsedData.firstName} ${parsedData.lastName}`,
+            hotelName: parsedData.hotelName || 'Innova Property'
+          });
         }
       } catch (error) {
-        console.error("Error parsing admin session:", error);
+        console.error("Error parsing owner session:", error);
       }
     }
   }, []);
 
   const navItems = [
-    { name: 'Dashboard', path: '/admin' },
-    { name: 'Rooms', path: '/admin/rooms' },
-    { name: 'Reservations', path: '/admin/reservations' },
-    { name: 'Customers', path: '/admin/customers' },
-    { name: 'Housekeeping', path: '/admin/housekeeping' },
-    { name: 'Inventory', path: '/admin/inventory' },
-    { name: 'Staff', path: '/admin/staff' },
-    { name: 'Reports', path: '/admin/reports' },
-    { name: 'Reviews', path: '/admin/reviews' },
+    { name: 'Dashboard', path: '/owner' },
+    { name: 'Rooms', path: '/owner/rooms' },
+    { name: 'Reservations', path: '/owner/reservations' },
+    { name: 'Customers', path: '/owner/customers' },
+    { name: 'Housekeeping', path: '/owner/housekeeping' },
+    { name: 'Inventory', path: '/owner/inventory' },
+    { name: 'Staff', path: '/owner/staff' },
+    { name: 'Reports', path: '/owner/reports' },
+    { name: 'Reviews', path: '/owner/reviews' },
   ];
 
   const currentItem = navItems.find(item => item.path === location.pathname);
-  const pageTitle = currentItem ? currentItem.name : "Management Portal";
+  const pageTitle = currentItem ? currentItem.name : "Property Management";
 
   const handleLogout = () => {
-    localStorage.removeItem('adminSession');
-    navigate('/admin/login');
+    localStorage.removeItem('ownerSession');
+    navigate('/owner/login');
   };
 
   return (
     <header className="h-20 bg-white/80 backdrop-blur-md border-b border-black/5 flex items-center justify-between px-10 sticky top-0 z-40">
-      {/* Left Side: Page Title */}
+      
+      {/* Left Side: Page Title & Property Name */}
       <div className="flex flex-col">
         <div className="flex items-center gap-2">
           <span className="text-[10px] font-bold tracking-[0.2em] text-[#bf9b30] opacity-70 uppercase">
-            Innova
+            {ownerInfo.hotelName}
           </span>
-          <div className="w-1 h-1 rounded-full bg-black/30" />
-          <span className="text-[10px] font-bold tracking-[0.2em] text-black/50 uppercase">
-            Portal
+          <div className="w-1.5 h-1.5 rounded-full bg-black/10" />
+          <span className="text-[10px] font-bold tracking-[0.2em] text-black/40 uppercase">
+            {pageTitle}
           </span>
         </div>
         <h2 className="text-xl font-bold text-slate-800 tracking-tight mt-0.5">
-          {pageTitle}
+          Welcome back, {ownerInfo.fullName.split(' ')[0]}
         </h2>
       </div>
 
       {/* Right Side: Profile Group */}
       <div className="flex items-center gap-6">
-        <div className="flex items-center gap-5 pl-8 border-l border-black/20">
-          <span className="text-xs font-semibold text-slate-700 tracking-tight capitalize">
-            {adminName}
-          </span>
+        <div className="flex items-center gap-5 pl-8 border-l border-black/10">
+          <div className="text-right hidden sm:block">
+            <p className="text-xs font-bold text-slate-800 tracking-tight capitalize">
+              {ownerInfo.fullName}
+            </p>
+            <p className="text-[9px] font-bold text-[#bf9b30] uppercase tracking-widest opacity-80">
+              Verified Owner
+            </p>
+          </div>
           
           <div className="w-10 h-10 rounded-full border border-[#bf9b30]/20 p-0.5 bg-gradient-to-tr from-[#bf9b30]/10 to-transparent">
             <div className="w-full h-full rounded-full bg-white flex items-center justify-center text-[#bf9b30] shadow-sm">
@@ -79,7 +95,7 @@ const AdminHeader = () => {
           <button
             type="button"
             onClick={handleLogout}
-            className="ml-2 group flex items-center gap-2.5 px-6 py-2.5 rounded-full bg-[#1a1208] text-white hover:bg-[#bf9b30] transition-all duration-300 shadow-md"
+            className="ml-2 group flex items-center gap-2.5 px-6 py-2.5 rounded-full bg-[#1a1208] text-white hover:bg-[#bf9b30] transition-all duration-300 shadow-md active:scale-95"
           >
             <span className="text-[10px] font-bold uppercase tracking-[0.15em]">Logout</span>
             <svg 
@@ -95,4 +111,4 @@ const AdminHeader = () => {
   );
 };
 
-export default AdminHeader;
+export default OwnerHeader;

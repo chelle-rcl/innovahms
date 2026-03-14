@@ -1,35 +1,37 @@
 import React, { useEffect } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
-import AdminSidebar from '../components/AdminSidebar';
-import AdminHeader from '../components/AdminHeader';
+import OwnerSidebar from '../components/OwnerSidebar'; 
+import OwnerHeader from '../components/OwnerHeader'; 
 
-const AdminLayout = () => {
+const OwnerLayout = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const session = localStorage.getItem('adminSession');
+    const session = localStorage.getItem('ownerSession'); 
+    
     if (!session) {
-      navigate('/admin/login', { replace: true });
+      navigate('/owner/login', { replace: true });
       return;
     }
+    
     try {
       const parsed = JSON.parse(session);
       if (!parsed?.email) {
-        localStorage.removeItem('adminSession');
-        navigate('/admin/login', { replace: true });
+        localStorage.removeItem('ownerSession');
+        navigate('/owner/login', { replace: true });
       }
     } catch {
-      localStorage.removeItem('adminSession');
-      navigate('/admin/login', { replace: true });
+      localStorage.removeItem('ownerSession');
+      navigate('/owner/login', { replace: true });
     }
   }, [navigate]);
 
   return (
     <div className="flex h-screen bg-gray-50">
-      <AdminSidebar />
+      <OwnerSidebar />
       
       <div className="flex-1 flex flex-col overflow-hidden">
-        <AdminHeader />
+        <OwnerHeader />
 
         <main className="flex-1 overflow-y-auto p-8 bg-slate-50">
           <Outlet />
@@ -39,4 +41,4 @@ const AdminLayout = () => {
   );
 };
 
-export default AdminLayout;
+export default OwnerLayout;

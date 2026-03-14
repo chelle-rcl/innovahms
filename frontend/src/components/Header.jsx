@@ -1,10 +1,13 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { User, LogOut, Settings, ChevronDown } from "lucide-react";
+import { User, LogOut, Settings, ChevronDown, Building2, Users } from "lucide-react";
 
 export default function Header() {
   const [user, setUser] = useState(null);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
+  const [isLoginDropdownOpen, setIsLoginDropdownOpen] = useState(false);
+  const [isSignupDropdownOpen, setIsSignupDropdownOpen] = useState(false);
+  
   const navigate = useNavigate();
 
   const loadUser = () => {
@@ -17,10 +20,7 @@ export default function Header() {
   };
 
   useEffect(() => {
-    // Load user on mount
     loadUser();
-
-    // Listen for profile updates fired by Profile.jsx
     window.addEventListener("userUpdated", loadUser);
     return () => window.removeEventListener("userUpdated", loadUser);
   }, []);
@@ -28,8 +28,14 @@ export default function Header() {
   const handleLogout = () => {
     localStorage.removeItem("user");
     setUser(null);
-    setIsDropdownOpen(false);
-    navigate("/login");
+    setIsUserDropdownOpen(false);
+    navigate("/");
+  };
+
+  const closeAll = () => {
+    setIsLoginDropdownOpen(false);
+    setIsSignupDropdownOpen(false);
+    setIsUserDropdownOpen(false);
   };
 
   return (
@@ -56,21 +62,21 @@ export default function Header() {
           {user ? (
             <div className="relative">
               <button 
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
                 className="flex items-center gap-2 rounded-full border border-innova-gold/50 bg-white px-4 py-2 text-sm font-semibold text-[#bf9b30] shadow-sm transition-all hover:shadow-md"
               >
                 <div className="flex h-6 w-6 items-center justify-center rounded-full bg-innova-gold text-white">
                   <User size={14} />
                 </div>
                 <span>{user.firstName}</span>
-                <ChevronDown size={14} className={`transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown size={14} className={`transition-transform ${isUserDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
 
-              {isDropdownOpen && (
+              {isUserDropdownOpen && (
                 <div className="absolute right-0 mt-2 w-48 rounded-xl border border-slate-200 bg-white py-2 shadow-xl ring-1 ring-black/5">
                   <Link 
                     to="/profile" 
-                    onClick={() => setIsDropdownOpen(false)}
+                    onClick={closeAll}
                     className="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-[#bf9b30]"
                   >
                     <Settings size={16} /> Profile Settings
@@ -85,17 +91,52 @@ export default function Header() {
               )}
             </div>
           ) : (
-            <>
-              <Link to="/login" className="hidden sm:block text-sm font-medium text-[#bf9b30] border border-[#bf9b30] rounded-[50px] px-3 py-1.5 transition-all hover:-translate-y-[2px]">
-                Login
-              </Link>
-              <Link to="/signup" className="rounded-[50px] bg-innova-gold px-4 py-1.5 text-sm font-semibold text-white transition-all hover:-translate-y-[2px]">
-                Sign Up
-              </Link>
-            </>
+            <div className="flex items-center gap-3">
+              
+              {/* Login Dropdown */}
+              <div className="relative">
+                <button 
+                  onClick={() => { setIsLoginDropdownOpen(!isLoginDropdownOpen); setIsSignupDropdownOpen(false); }}
+                  className="flex items-center gap-1 text-sm font-medium text-[#bf9b30] border border-[#bf9b30] rounded-[50px] px-4 py-1.5 transition-all hover:bg-[#bf9b30] hover:text-white"
+                >
+                  Login <ChevronDown size={14} />
+                </button>
+                {isLoginDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-56 rounded-xl border border-slate-200 bg-white py-2 shadow-xl ring-1 ring-black/5">
+                    <Link to="/login" onClick={closeAll} className="flex items-center gap-2 px-4 py-3 text-sm text-slate-700 hover:bg-slate-50">
+                      <Users size={16} className="text-innova-gold" /> Login as Customer
+                    </Link>
+                    {/* Updated path to /owner/login */}
+                    <Link to="/owner/login" onClick={closeAll} className="flex items-center gap-2 px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 border-t border-slate-100">
+                      <Building2 size={16} className="text-innova-gold" /> Login as Hotel Owner
+                    </Link>
+                  </div>
+                )}
+              </div>
+
+              {/* Signup Dropdown */}
+              <div className="relative">
+                <button 
+                  onClick={() => { setIsSignupDropdownOpen(!isSignupDropdownOpen); setIsLoginDropdownOpen(false); }}
+                  className="flex items-center gap-1 rounded-[50px] bg-innova-gold px-4 py-1.5 text-sm font-semibold text-white transition-all hover:brightness-110"
+                >
+                  Sign Up <ChevronDown size={14} />
+                </button>
+                {isSignupDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-56 rounded-xl border border-slate-200 bg-white py-2 shadow-xl ring-1 ring-black/5">
+                    <Link to="/signup" onClick={closeAll} className="flex items-center gap-2 px-4 py-3 text-sm text-slate-700 hover:bg-slate-50">
+                      <Users size={16} className="text-innova-gold" /> Signup as Customer
+                    </Link>
+                    <Link to="/signup/owner" onClick={closeAll} className="flex items-center gap-2 px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 border-t border-slate-100">
+                      <Building2 size={16} className="text-innova-gold" /> Signup as Hotel Owner
+                    </Link>
+                  </div>
+                )}
+              </div>
+
+            </div>
           )}
         </div>
-
       </div>
     </header>
   );

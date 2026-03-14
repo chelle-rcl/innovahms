@@ -3,19 +3,20 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 // Layouts
 import CustomerLayout from "./layouts/CustomerLayout";
-import AdminLayout from "./layouts/AdminLayout";
+import OwnerLayout from "./layouts/OwnerLayout"; 
 
-// Admin Pages
-import Dashboard from "./pages/admin/Dashboard";
-import Rooms from "./pages/admin/Rooms";
-import Reservations from "./pages/admin/Reservations";
-import Customers from "./pages/admin/Customers";
-import Housekeeping from "./pages/admin/Housekeeping";
-import Inventory from "./pages/admin/Inventory";
-import Staff from "./pages/admin/Staff";
-import Reports from "./pages/admin/Reports";
-import Reviews from "./pages/admin/Reviews";
-import AdminLogin from "./pages/admin/AdminLogin";
+// Owner Pages 
+import OwnerDashboard from "./pages/owner/Dashboard";
+import OwnerRooms from "./pages/owner/Rooms";
+import OwnerReservations from "./pages/owner/Reservations";
+import OwnerCustomers from "./pages/owner/Customers";
+import OwnerHousekeeping from "./pages/owner/Housekeeping";
+import OwnerInventory from "./pages/owner/Inventory";
+import OwnerStaff from "./pages/owner/Staff";
+import OwnerReports from "./pages/owner/Reports";
+import OwnerReviews from "./pages/owner/Reviews";
+import OwnerLogin from "./pages/owner/OwnerLogin"; 
+import OwnerSignUp from "./pages/owner/OwnerSignUp";
 
 // Customer Pages
 import Home from "./pages/Home";
@@ -42,21 +43,24 @@ function App() {
           <Route path="/about" element={<div className="p-20 text-center">About Us Coming Soon</div>} />
         </Route>
 
-        {/* --- ADMIN LOGIN (No Sidebar) --- */}
-        <Route path="/admin/login" element={<AdminLogin />} />
+        {/* --- OWNER AUTH (No Sidebar) --- */}
+        <Route path="/owner/login" element={<OwnerLogin />} />
+        {/* Add this line here */}
+        <Route path="/signup/owner" element={<OwnerSignUp />} />
 
-        {/* --- ADMIN PROTECTED ROUTES (With Sidebar) --- */}
-        <Route path="/admin" element={<AdminLayout />}>
-          <Route index element={<Dashboard />} />
-          <Route path="rooms" element={<Rooms />} />
-          <Route path="reservations" element={<Reservations />} />
-          <Route path="customers" element={<Customers />} />
-          <Route path="housekeeping" element={<Housekeeping />} />
-          <Route path="inventory" element={<Inventory />} />
-          <Route path="staff" element={<Staff />} />
-          <Route path="reports" element={<Reports />} />
-          <Route path="reviews" element={<Reviews />} />
+        {/* --- OWNER PROTECTED ROUTES (With Sidebar) --- */}
+        <Route path="/owner" element={<OwnerLayout />}>
+          <Route index element={<OwnerDashboard />} />
+          <Route path="rooms" element={<OwnerRooms />} />
+          <Route path="reservations" element={<OwnerReservations />} />
+          <Route path="customers" element={<OwnerCustomers />} />
+          <Route path="housekeeping" element={<OwnerHousekeeping />} />
+          <Route path="inventory" element={<OwnerInventory />} />
+          <Route path="staff" element={<OwnerStaff />} />
+          <Route path="reports" element={<OwnerReports />} />
+          <Route path="reviews" element={<OwnerReviews />} />
         </Route>
+        
       </Routes>
     </Router>
   );

@@ -24,8 +24,9 @@ const InputField = ({ label, type, icon, placeholder, value, onChange, isFocused
   </div>
 );
 
-const ADMIN_SESSION_KEY = 'adminSession';
-const AdminLogin = () => {
+const OWNER_SESSION_KEY = 'ownerSession';
+
+const OwnerLogin = () => {
   const navigate = useNavigate();
   const [focused, setFocused] = useState(null);
   const [loaded, setLoaded] = useState(false);
@@ -46,7 +47,7 @@ const AdminLogin = () => {
 
     setIsSubmitting(true);
     try {
-      const response = await fetch('/api/admin/login', {
+      const response = await fetch('/api/owner/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -54,17 +55,20 @@ const AdminLogin = () => {
       const data = await response.json();
 
       if (response.ok) {
-        const adminInfo = data?.admin || {};
+        const ownerInfo = data?.owner || {};
         const sessionPayload = {
-          id: adminInfo.id,
-          name: adminInfo.name,
-          email: adminInfo.email,
+          id: ownerInfo.id,
+          firstName: ownerInfo.firstName,
+          lastName: ownerInfo.lastName,
+          email: ownerInfo.email,
+          hotelName: ownerInfo.hotelName, 
           lastLogin: new Date().toISOString()
-        };
-        localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(sessionPayload));
-        navigate('/admin');
-        return;
-      }
+      };
+      
+      localStorage.setItem(OWNER_SESSION_KEY, JSON.stringify(sessionPayload));
+      navigate('/owner'); 
+      return;
+    }
       setFeedback(data.error || 'Invalid email or password.');
     } catch (error) {
       setFeedback('Unable to reach the server. Please try again.');
@@ -75,19 +79,20 @@ const AdminLogin = () => {
 
   useEffect(() => { setTimeout(() => setLoaded(true), 100); }, []);
 
+  // Check for existing session on mount
   useEffect(() => {
-    const storedSession = localStorage.getItem(ADMIN_SESSION_KEY);
+    const storedSession = localStorage.getItem(OWNER_SESSION_KEY);
     if (!storedSession) return;
 
     try {
       const parsed = JSON.parse(storedSession);
       if (parsed?.email) {
-        navigate('/admin');
+        navigate('/owner');
       } else {
-        localStorage.removeItem(ADMIN_SESSION_KEY);
+        localStorage.removeItem(OWNER_SESSION_KEY);
       }
     } catch {
-      localStorage.removeItem(ADMIN_SESSION_KEY);
+      localStorage.removeItem(OWNER_SESSION_KEY);
     }
   }, [navigate]);
 
@@ -105,7 +110,7 @@ const AdminLogin = () => {
         <div className={`${transitionClass} delay-100 z-10`}>
           <div className="inline-flex items-center gap-2.5 px-4 py-2 border border-[#bf9b30]/30 rounded bg-[#bf9b30]/5">
             <div className="w-1.5 h-1.5 rounded-full bg-[#bf9b30]" />
-            <span className="text-[10px] tracking-[0.3em] text-[#9a7a20] font-bold uppercase">System Access</span>
+            <span className="text-[10px] tracking-[0.3em] text-[#9a7a20] font-bold uppercase">Secure Access</span>
           </div>
         </div>
 
@@ -119,7 +124,7 @@ const AdminLogin = () => {
               </span>
             </h1>
             <p className="mt-6 text-sm leading-relaxed text-black/60 max-w-[380px] font-medium italic">
-              Welcome to the INNOVA-HMS core. Experience a smarter way to manage your property with intuitive automation and effortless control.
+              Welcome to the INNOVA-HMS owner portal. Manage your property with intuitive automation and effortless control.
             </p>
           </div>
         </div>
@@ -133,17 +138,16 @@ const AdminLogin = () => {
             <img src="/images/logo.png" className="max-w-[180px] mx-auto" alt="Logo" />
           </div>
           
-          <h2 className="text-2xl font-light text-[#1a1208] font-serif mb-2">Admin Login</h2>
-          <p className="text-[13px] text-black/40 font-light mb-10">Enter your credentials to access the secure portal.</p>
+          <h2 className="text-2xl font-light text-[#1a1208] font-serif mb-2">Owner Login</h2>
+          <p className="text-[13px] text-black/40 font-light mb-10">Enter your credentials to access your property management dashboard.</p>
           
           <div className="h-px bg-gradient-to-r from-[#bf9b30]/40 via-[#bf9b30]/10 to-transparent mb-10" />
 
           <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
-            {/* Email Field */}
             <InputField 
               label="Email Address" 
               type="email" 
-              placeholder="admin@company.com"
+              placeholder="owner@property.com"
               isFocused={focused === 'email'} 
               onFocus={() => setFocused('email')} 
               onBlur={() => setFocused(null)}
@@ -152,7 +156,6 @@ const AdminLogin = () => {
               icon={<svg className="w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>}
             />
 
-            {/* Password Field */}
             <InputField 
               label="Password" 
               type={showPassword ? 'text' : 'password'} 
@@ -164,7 +167,6 @@ const AdminLogin = () => {
               onChange={(event) => setFormData((prev) => ({ ...prev, password: event.target.value }))}
               icon={<svg className="w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>}
             >
-              {/* Password Toggle Button */}
               <button 
                 type="button" 
                 onClick={() => setShowPassword(!showPassword)} 
@@ -177,7 +179,6 @@ const AdminLogin = () => {
                 )}
               </button>
 
-              {/* Error display — now nested inside the InputField container */}
               {feedback && (
                 <p className="absolute -bottom-6 left-0 text-red-500 text-[11px] font-medium flex items-center gap-1">
                   <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -209,4 +210,4 @@ const AdminLogin = () => {
   );
 };
 
-export default AdminLogin;
+export default OwnerLogin;

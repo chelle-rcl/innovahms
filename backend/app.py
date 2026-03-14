@@ -14,34 +14,29 @@ def get_db_connection():
         password="12345"
     )
 
+# --- CUSTOMER ENDPOINTS ---
+
 @app.route('/api/signup', methods=['POST'])
 def signup():
     data = request.json
-    
-    # Extract data from the request
     first_name = data.get('firstName')
     last_name = data.get('lastName')
     email = data.get('email')
     contact = data.get('contactNumber')
     password = data.get('password')
 
-    # Hash the password for security
     hashed_pw = generate_password_hash(password)
 
     try:
         conn = get_db_connection()
         cur = conn.cursor()
-        
-        # Insert user into the database
         cur.execute(
             "INSERT INTO customers (first_name, last_name, email, contact_number, password_hash) VALUES (%s, %s, %s, %s, %s)",
             (first_name, last_name, email, contact, hashed_pw)
         )
-        
         conn.commit()
         cur.close()
         conn.close()
-        
         return jsonify({"message": "User created successfully!"}), 201
     except Exception as e:
         return jsonify({"error": str(e)}), 400
@@ -58,11 +53,8 @@ def login():
     try:
         conn = get_db_connection()
         cur = conn.cursor()
-        
-        # Look for the customer in the database
         cur.execute("SELECT id, first_name, last_name, email, contact_number, password_hash FROM customers WHERE email = %s", (email,))
         user = cur.fetchone()
-        
         cur.close()
         conn.close()
 
@@ -79,16 +71,14 @@ def login():
                         "contactNumber": u_contact
                     }
                 }), 200
-            else:
-                return jsonify({"error": "Invalid email or password"}), 401
-        else:
-            return jsonify({"error": "Invalid email or password"}), 401
-
+        return jsonify({"error": "Invalid email or password"}), 401
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/api/admin/login', methods=['POST'])
-def admin_login():
+# --- OWNER ENDPOINTS ---
+
+@app.route('/api/owner/login', methods=['POST'])
+def owner_login():
     data = request.json or {}
     email = data.get('email')
     password = data.get('password')
@@ -100,29 +90,71 @@ def admin_login():
         conn = get_db_connection()
         cur = conn.cursor()
 
-        cur.execute("SELECT id, name, email, password_hash FROM admins WHERE email = %s", (email,))
-        admin = cur.fetchone()
-
+        cur.execute("""
+            SELECT o.id, o.first_name, o.last_name, o.email, o.password_hash, h.hotel_name 
+            FROM owners o
+            LEFT JOIN hotels h ON o.id = h.owner_id
+            WHERE o.email = %s
+        """, (email,))
+        
+        owner = cur.fetchone()
         cur.close()
         conn.close()
 
-        if admin:
-            admin_id, name, admin_email, hashed_pw = admin
+        if owner:
+            owner_id, f_name, l_name, owner_email, hashed_pw, h_name = owner
             if check_password_hash(hashed_pw, password):
                 return jsonify({
-                    "message": "Admin login successful!",
-                    "admin": {
-                        "id": admin_id,
-                        "name": name,
-                        "email": admin_email
+                    "message": "Owner login successful!",
+                    "owner": {
+                        "id": owner_id,
+                        "firstName": f_name, 
+                        "lastName": l_name,
+                        "email": owner_email,
+                        "hotelName": h_name 
                     }
                 }), 200
-            return jsonify({"error": "Invalid email or password"}), 401
-
         return jsonify({"error": "Invalid email or password"}), 401
-
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route('/api/owner/signup', methods=['POST'])
+def owner_signup():
+    data = request.json
+    f_name = data.get('firstName')
+    l_name = data.get('lastName')
+    email = data.get('email')
+    contact = data.get('contactNumber')
+    password = data.get('password')
+    hotel_name = data.get('hotelName')
+
+    hashed_pw = generate_password_hash(password)
+
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        
+        # 1. Insert Owner
+        cur.execute(
+            "INSERT INTO owners (first_name, last_name, email, contact_number, password_hash) VALUES (%s, %s, %s, %s, %s) RETURNING id",
+            (f_name, l_name, email, contact, hashed_pw)
+        )
+        owner_id = cur.fetchone()[0]
+
+        # 2. Insert Hotel
+        cur.execute(
+            "INSERT INTO hotels (owner_id, hotel_name) VALUES (%s, %s)",
+            (owner_id, hotel_name)
+        )
+        
+        conn.commit()
+        cur.close()
+        conn.close()
+        return jsonify({"message": "Owner and Hotel registered successfully!"}), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+# --- PROFILE UPDATES ---
 
 @app.route('/api/user/update', methods=['PUT'])
 def update_user():
@@ -135,12 +167,10 @@ def update_user():
     try:
         conn = get_db_connection()
         cur = conn.cursor()
-        
         cur.execute(
             "UPDATE customers SET first_name = %s, last_name = %s, contact_number = %s WHERE id = %s",
             (first_name, last_name, contact, user_id)
         )
-        
         conn.commit()
         cur.close()
         conn.close()
@@ -158,13 +188,10 @@ def change_password():
     try:
         conn = get_db_connection()
         cur = conn.cursor()
-        
-        # 1. Verify current password first
         cur.execute("SELECT password_hash FROM customers WHERE id = %s", (user_id,))
         result = cur.fetchone()
         
         if result and check_password_hash(result[0], current_password):
-            # 2. Hash and save new password
             new_hashed_pw = generate_password_hash(new_password)
             cur.execute("UPDATE customers SET password_hash = %s WHERE id = %s", (new_hashed_pw, user_id))
             conn.commit()
