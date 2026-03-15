@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, AlertTriangle, X, Search, Image as ImageIcon, Users } from 'lucide-react';
+import { Plus, Edit, Trash2, AlertTriangle, X, Search, Image as ImageIcon, Users, CheckCircle } from 'lucide-react';
 
 const API_BASE_URL = 'http://localhost:5000';
 
 const Rooms = () => {
+  const [notification, setNotification] = useState({ show: false, message: '' });
   const [rooms, setRooms] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [roomToDelete, setRoomToDelete] = useState(null);
-  
+  const [amenityInput, setAmenityInput] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [currentRoomId, setCurrentRoomId] = useState(null);
   
@@ -32,6 +33,11 @@ const Rooms = () => {
   const hotelId = ownerSession?.id;
 
   const AMENITY_OPTIONS = ["Free Wi-Fi", "Air Conditioning", "Smart TV", "Mini Bar", "Coffee Maker", "Safe Box", "Balcony"];
+
+  const showStatus = (msg) => {
+    setNotification({ show: true, message: msg });
+    setTimeout(() => setNotification({ show: false, message: '' }), 3000);
+  };
 
   useEffect(() => { fetchRooms(); }, []);
 
@@ -72,13 +78,24 @@ const Rooms = () => {
     setShowModal(true);
   };
 
-  const handleAmenityChange = (amenity) => {
-    setRoomData(prev => ({
-      ...prev,
-      amenities: prev.amenities.includes(amenity) 
-        ? prev.amenities.filter(a => a !== amenity) 
-        : [...prev.amenities, amenity]
-    }));
+  const addAmenity = (e) => {
+    if (e.key === 'Enter' && amenityInput.trim() !== '') {
+      e.preventDefault();
+      if (!roomData.amenities.includes(amenityInput.trim())) {
+        setRoomData({
+          ...roomData,
+          amenities: [...roomData.amenities, amenityInput.trim()]
+        });
+      }
+      setAmenityInput('');
+    }
+  };
+
+  const removeAmenity = (amenityToRemove) => {
+    setRoomData({
+      ...roomData,
+      amenities: roomData.amenities.filter(a => a !== amenityToRemove)
+    });
   };
 
   const handleImageUpload = (e) => {
@@ -124,7 +141,7 @@ const Rooms = () => {
       });
 
       const url = isEditing ? `/api/owner/rooms/update/${currentRoomId}` : '/api/owner/rooms/add';
-      
+    
       const res = await fetch(url, {
         method: isEditing ? 'PUT' : 'POST',
         body: formData 
@@ -134,13 +151,18 @@ const Rooms = () => {
         setShowModal(false); 
         fetchRooms(); 
         setRoomData(initialRoomData); 
+
+        const successMsg = isEditing 
+          ? `Room ${roomData.roomNumber} updated successfully!` 
+          : `Room ${roomData.roomNumber} created successfully!`;
+        showStatus(successMsg);
       } else {
         const errorData = await res.json();
         alert("Error: " + errorData.error);
       }
     } catch (err) {
       console.error("Submission error:", err);
-      alert("An unexpected error occurred. Check the console.");
+      alert("An unexpected error occurred.");
     }
   };
 
@@ -160,6 +182,10 @@ const Rooms = () => {
       if (res.ok) {
         setRooms(rooms.filter(room => room.id !== roomToDelete.id));
         setShowDeleteModal(false);
+        
+        // Use the helper here too
+        showStatus(`Room ${roomToDelete.roomNumber} deleted successfully.`);
+        
         setRoomToDelete(null);
       }
     } catch (err) {
@@ -234,8 +260,8 @@ const Rooms = () => {
                   </div>
                 </td>
                 <td className="px-6 py-4 text-xs text-slate-600">
-                    <div className="flex items-center gap-2">🧑 {room.maxAdults} Adults</div>
-                    <div className="flex items-center gap-2">🧒 {room.maxChildren} Kids</div>
+                    <div className="flex items-center gap-2">{room.maxAdults} Adults</div>
+                    <div className="flex items-center gap-2">{room.maxChildren} Kids</div>
                 </td>
                 <td className="px-6 py-4 font-serif text-[#bf9b30] font-bold">₱{Number(room.price).toLocaleString()}</td>
                 <td className="px-6 py-4">
@@ -292,11 +318,41 @@ const Rooms = () => {
                 </div>
 
                 <div>
-                    <label className="text-xs font-bold text-slate-400 uppercase mb-1 block">Capacity</label>
-                    <div className="flex gap-4 p-3 bg-slate-50 rounded-xl">
-                        <div className="flex items-center gap-2">🧑 <input type="number" className="bg-transparent w-10 font-bold" value={roomData.maxAdults} onChange={e => setRoomData({...roomData, maxAdults: e.target.value})} /></div>
-                        <div className="flex items-center gap-2">🧒 <input type="number" className="bg-transparent w-10 font-bold" value={roomData.maxChildren} onChange={e => setRoomData({...roomData, maxChildren: e.target.value})} /></div>
+                  <label className="text-xs font-bold text-slate-400 uppercase mb-1 block">Capacity</label>
+                  <div className="flex gap-4 p-3 bg-slate-50 rounded-xl border border-black/5">
+                    {/* Adults Input */}
+                    <div className="flex flex-1 items-center justify-between px-2">
+                      <div className="flex flex-col">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase leading-none mb-1">Adults</span>
+                        <span className="text-[9px] text-slate-300 font-medium">Ages 18+</span>
+                      </div>
+                      <input 
+                        type="number" 
+                        min="1"
+                        className="bg-transparent w-12 text-right font-bold text-slate-700 outline-none focus:text-[#bf9b30]" 
+                        value={roomData.maxAdults} 
+                        onChange={e => setRoomData({...roomData, maxAdults: e.target.value})} 
+                      />
                     </div>
+
+                    {/* Divider */}
+                    <div className="w-px h-8 bg-slate-200 self-center"></div>
+
+                    {/* Children Input */}
+                    <div className="flex flex-1 items-center justify-between px-2">
+                      <div className="flex flex-col">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase leading-none mb-1">Children</span>
+                        <span className="text-[9px] text-slate-300 font-medium">Ages 0-17</span>
+                      </div>
+                      <input 
+                        type="number" 
+                        min="0"
+                        className="bg-transparent w-12 text-right font-bold text-slate-700 outline-none focus:text-[#bf9b30]" 
+                        value={roomData.maxChildren} 
+                        onChange={e => setRoomData({...roomData, maxChildren: e.target.value})} 
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 <div>
@@ -308,15 +364,49 @@ const Rooms = () => {
               {/* Right Column: Amenities & Images */}
               <div className="space-y-4">
                 <div>
-                    <label className="text-xs font-bold text-slate-400 uppercase mb-2 block">Amenities</label>
-                    <div className="grid grid-cols-2 gap-2">
-                        {AMENITY_OPTIONS.map(amenity => (
-                            <label key={amenity} className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-all ${roomData.amenities.includes(amenity) ? 'bg-[#bf9b30]/10 border-[#bf9b30] text-[#bf9b30]' : 'border-slate-100 text-slate-500'}`}>
-                                <input type="checkbox" className="hidden" checked={roomData.amenities.includes(amenity)} onChange={() => handleAmenityChange(amenity)} />
-                                <span className="text-xs font-bold">{amenity}</span>
-                            </label>
-                        ))}
+                  <label className="text-xs font-bold text-slate-400 uppercase mb-2 block">Amenities</label>
+                  
+                  {/* Input Field */}
+                  <div className="relative mb-3">
+                    <input 
+                      type="text" 
+                      placeholder="Type amenity and press Enter..." 
+                      className="w-full p-3 rounded-xl border border-slate-200 outline-none focus:border-[#bf9b30] transition-colors"
+                      value={amenityInput}
+                      onChange={(e) => setAmenityInput(e.target.value)}
+                      onKeyDown={addAmenity}
+                    />
+                    <Plus className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                  </div>
+
+                  {/* Active Tags */}
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {roomData.amenities.map((amenity, idx) => (
+                      <span key={idx} className="flex items-center gap-2 px-3 py-1.5 bg-[#bf9b30]/10 text-[#bf9b30] border border-[#bf9b30]/20 rounded-lg text-xs font-bold">
+                        {amenity}
+                        <button type="button" onClick={() => removeAmenity(amenity)} className="hover:text-red-500">
+                          <X size={14} />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+
+                  {/* Quick Suggestions (Optional) */}
+                  <div className="space-y-2">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase">Suggestions</p>
+                    <div className="flex flex-wrap gap-2">
+                      {AMENITY_OPTIONS.filter(opt => !roomData.amenities.includes(opt)).map(option => (
+                        <button
+                          key={option}
+                          type="button"
+                          onClick={() => setRoomData({...roomData, amenities: [...roomData.amenities, option]})}
+                          className="px-3 py-1 bg-slate-100 text-slate-500 rounded-full text-[10px] font-bold hover:bg-slate-200 transition-colors"
+                        >
+                          + {option}
+                        </button>
+                      ))}
                     </div>
+                  </div>
                 </div>
 
                 <div>
@@ -398,6 +488,22 @@ const Rooms = () => {
                     <button onClick={() => setShowDeleteModal(false)} className="w-full py-4 text-slate-500 font-bold">Cancel</button>
                 </div>
             </div>
+        </div>
+      )}
+
+      {/* Success Notification */}
+      {notification.show && (
+        <div className="fixed bottom-8 right-8 flex items-center gap-3 bg-slate-900 text-white px-6 py-4 rounded-2xl shadow-2xl z-[100] animate-in slide-in-from-bottom-5 duration-300">
+          <div className="bg-green-500 p-1 rounded-full">
+            <CheckCircle size={18} className="text-white" />
+          </div>
+          <span className="text-sm font-bold">{notification.message}</span>
+          <button 
+            onClick={() => setNotification({ show: false, message: '' })}
+            className="ml-4 text-slate-400 hover:text-white"
+          >
+            <X size={16} />
+          </button>
         </div>
       )}
     </div>
