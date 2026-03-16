@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, AlertTriangle, X, Search, Image as ImageIcon, Users, CheckCircle } from 'lucide-react';
+import { Plus, Edit, Trash2, AlertTriangle, X, Search, Image as ImageIcon, Users, CheckCircle, Eye } from 'lucide-react';
 
 const API_BASE_URL = 'http://localhost:5000';
 
@@ -8,6 +8,10 @@ const Rooms = () => {
   const [rooms, setRooms] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [selectedRoom, setSelectedRoom] = useState(null);
+
   const [roomToDelete, setRoomToDelete] = useState(null);
   const [amenityInput, setAmenityInput] = useState('');
   const [isEditing, setIsEditing] = useState(false);
@@ -26,7 +30,6 @@ const Rooms = () => {
     images: [] 
   };
   const [roomData, setRoomData] = useState(initialRoomData);
-
   const [filters, setFilters] = useState({ roomNumber: '', roomType: 'All', maxPrice: '', status: 'All' });
 
   const ownerSession = JSON.parse(localStorage.getItem('ownerSession'));
@@ -48,17 +51,26 @@ const Rooms = () => {
   };
 
   const filteredRooms = rooms.filter(room => {
-    const matchNumber = room.roomNumber.toLowerCase().includes(filters.roomNumber.toLowerCase());
+    const searchTerm = filters.roomNumber.toLowerCase();
+    const matchNumber = room.roomNumber.toString().toLowerCase().includes(searchTerm);
+    const matchName = (room.roomName || '').toLowerCase().includes(searchTerm);
+    
     const matchType = filters.roomType === 'All' || room.roomType === filters.roomType;
     const matchStatus = filters.status === 'All' || (room.status || 'Available') === filters.status;
     const matchPrice = filters.maxPrice === '' || Number(room.price) <= Number(filters.maxPrice);
-    return matchNumber && matchType && matchStatus && matchPrice;
+
+    return (matchNumber || matchName) && matchType && matchStatus && matchPrice;
   });
 
   const openAddModal = () => {
     setIsEditing(false);
     setRoomData(initialRoomData);
     setShowModal(true);
+  };
+
+  const openViewModal = (room) => {
+    setSelectedRoom(room);
+    setShowViewModal(true);
   };
 
   const openEditModal = (room) => {
@@ -124,8 +136,6 @@ const Rooms = () => {
       formData.append('roomNumber', roomData.roomNumber);
       formData.append('roomName', roomData.roomName || '');
       formData.append('roomType', roomData.roomType);
-      
-      // Ensure numbers are valid or default to 0
       formData.append('price', parseFloat(roomData.price) || 0);
       formData.append('description', roomData.description || '');
       formData.append('maxAdults', parseInt(roomData.maxAdults) || 2);
@@ -141,7 +151,6 @@ const Rooms = () => {
       });
 
       const url = isEditing ? `/api/owner/rooms/update/${currentRoomId}` : '/api/owner/rooms/add';
-    
       const res = await fetch(url, {
         method: isEditing ? 'PUT' : 'POST',
         body: formData 
@@ -183,7 +192,6 @@ const Rooms = () => {
         setRooms(rooms.filter(room => room.id !== roomToDelete.id));
         setShowDeleteModal(false);
         
-        // Use the helper here too
         showStatus(`Room ${roomToDelete.roomNumber} deleted successfully.`);
         
         setRoomToDelete(null);
@@ -191,6 +199,15 @@ const Rooms = () => {
     } catch (err) {
       console.error("Delete error:", err);
     }
+  };
+
+  const clearFilters = () => {
+    setFilters({ 
+      roomNumber: '', 
+      roomType: 'All', 
+      maxPrice: '', 
+      status: 'All' 
+    });
   };
 
   return (
@@ -203,23 +220,66 @@ const Rooms = () => {
       </div>
 
       {/* Filter Bar */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6 items-center">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-          <input type="text" placeholder="Search Room #..." className="w-full pl-10 pr-4 py-2.5 bg-white border border-black/5 rounded-xl outline-none text-sm" value={filters.roomNumber} onChange={(e) => setFilters({...filters, roomNumber: e.target.value})} />
+          <input 
+            type="text" 
+            placeholder="Search Room..." 
+            className="w-full pl-10 pr-4 py-2.5 bg-white border border-black/5 rounded-xl outline-none text-sm focus:border-[#bf9b30]/30 transition-all" 
+            value={filters.roomNumber} 
+            onChange={(e) => setFilters({...filters, roomNumber: e.target.value})} 
+          />
         </div>
-        <select className="px-4 py-2.5 bg-white border border-black/5 rounded-xl outline-none text-sm" value={filters.roomType} onChange={(e) => setFilters({...filters, roomType: e.target.value})}>
+
+        <select 
+          className="px-4 py-2.5 bg-white border border-black/5 rounded-xl outline-none text-sm focus:border-[#bf9b30]/30 transition-all cursor-pointer" 
+          value={filters.roomType} 
+          onChange={(e) => setFilters({...filters, roomType: e.target.value})}
+        >
             <option value="All">All Types</option>
             {['Single', 'Double', 'Suite', 'Deluxe'].map(t => <option key={t} value={t}>{t}</option>)}
         </select>
-        <select className="px-4 py-2.5 bg-white border border-black/5 rounded-xl outline-none text-sm" value={filters.status} onChange={(e) => setFilters({...filters, status: e.target.value})}>
+
+        <select 
+          className="px-4 py-2.5 bg-white border border-black/5 rounded-xl outline-none text-sm focus:border-[#bf9b30]/30 transition-all cursor-pointer" 
+          value={filters.status} 
+          onChange={(e) => setFilters({...filters, status: e.target.value})}
+        >
             <option value="All">All Statuses</option>
             {['Available', 'Occupied', 'Maintenance', 'Cleaning'].map(s => <option key={s} value={s}>{s}</option>)}
         </select>
+
         <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">MAX ₱</span>
-          <input type="number" placeholder="Price" className="w-full pl-16 pr-4 py-2.5 bg-white border border-black/5 rounded-xl text-sm" value={filters.maxPrice} onChange={(e) => setFilters({...filters, maxPrice: e.target.value})} />
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] font-bold">₱</span>
+          <input 
+            type="number" 
+            placeholder="Max Price" 
+            className="w-full pl-8 pr-4 py-2.5 bg-white border border-black/5 rounded-xl text-sm focus:border-[#bf9b30]/30 transition-all" 
+            value={filters.maxPrice} 
+            onChange={(e) => setFilters({...filters, maxPrice: e.target.value})} 
+          />
         </div>
+
+        <button 
+          onClick={clearFilters}
+          className="text-slate-400 hover:text-[#bf9b30] text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-colors py-2"
+        >
+          <X size={14} /> Clear Filters
+        </button>
+      </div>
+
+      {/* Results Summary */}
+      <div className="flex justify-between items-end mb-4 px-2">
+        <div className="text-slate-500 text-sm">
+          <span className="font-bold text-slate-800">{filteredRooms.length}</span> {filteredRooms.length === 1 ? 'room' : 'rooms'} found
+        </div>
+        
+        {filteredRooms.length === rooms.length && rooms.length > 0 && (
+          <span className="text-[10px] font-bold text-green-500 uppercase tracking-widest flex items-center gap-1">
+            <CheckCircle size={12} /> Viewing All
+          </span>
+        )}
       </div>
 
       {/* Table Section */}
@@ -228,58 +288,213 @@ const Rooms = () => {
           <thead className="bg-slate-50 border-b border-black/5">
             <tr>
               <th className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-slate-400">Room Info</th>
-              <th className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-slate-400">Capacity</th>
+              <th className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-slate-400">Type</th>
               <th className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-slate-400">Price / Night</th>
               <th className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-slate-400">Status</th>
               <th className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-slate-400 text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-black/5">
-            {filteredRooms.map((room) => (
-              <tr key={room.id} className="hover:bg-slate-50/50 transition-colors">
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-lg bg-slate-100 overflow-hidden flex-shrink-0 border border-black/5">
-                      {room.images?.[0] ? (
-                        <img 
-                          src={room.images[0].startsWith('http') 
-                            ? room.images[0] 
-                            : `${API_BASE_URL}${room.images[0].startsWith('/') ? '' : '/'}${room.images[0]}`} 
-                          className="w-full h-full object-cover" 
-                          alt="" 
-                          onError={(e) => { e.target.src = 'https://via.placeholder.com/150?text=No+Image'; }}
-                        />
-                      ) : (
-                        <ImageIcon className="m-auto h-full text-slate-300" />
-                      )}
+            {filteredRooms.length > 0 ? (
+              filteredRooms.map((room) => (
+                <tr key={room.id} className="hover:bg-slate-50/50 transition-colors group">
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-4">
+                      {/* Image Thumbnail */}
+                      <div className="w-12 h-12 rounded-xl bg-slate-100 overflow-hidden flex-shrink-0 border border-black/5">
+                        {room.images?.[0] ? (
+                          <img 
+                            src={room.images[0].startsWith('http') 
+                              ? room.images[0] 
+                              : `${API_BASE_URL}${room.images[0].startsWith('/') ? '' : '/'}${room.images[0]}`} 
+                            className="w-full h-full object-cover" 
+                            alt="" 
+                            onError={(e) => { e.target.src = 'https://via.placeholder.com/150?text=No+Image'; }}
+                          />
+                        ) : (
+                          <ImageIcon className="m-auto h-full text-slate-300" />
+                        )}
+                      </div>
+                      {/* Room Text Info */}
+                      <div>
+                        <div className="font-bold text-slate-800">Room {room.roomNumber}</div>
+                        <div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">
+                          {room.roomName || room.roomType}
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <div className="font-bold text-slate-800">Room {room.roomNumber}</div>
-                      <div className="text-sm text-slate-500">{room.roomName || room.roomType}</div>
+                  </td>
+                  
+                  {/* Room Type Column */}
+                  <td className="px-6 py-4">
+                    <span className="text-sm font-medium text-slate-600 bg-slate-100 px-3 py-1 rounded-lg">
+                      {room.roomType}
+                    </span>
+                  </td>
+
+                  {/* Price Column */}
+                  <td className="px-6 py-4 font-serif text-[#bf9b30] font-bold">
+                    ₱{Number(room.price).toLocaleString()}
+                  </td>
+
+                  {/* Status Column */}
+                  <td className="px-6 py-4">
+                    <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase border inline-block ${getStatusStyles(room.status)}`}>
+                      {room.status || 'Available'}
+                    </span>
+                  </td>
+
+                  {/* Actions Column */}
+                  <td className="px-6 py-4 text-right">
+                    <div className="flex justify-end gap-3 text-slate-400">
+                      <button 
+                        onClick={() => openViewModal(room)} 
+                        className="p-2 hover:bg-[#bf9b30]/10 hover:text-[#bf9b30] rounded-lg transition-all" 
+                        title="View Details"
+                      >
+                        <Eye size={18} />
+                      </button>
+                      <button 
+                        onClick={() => openEditModal(room)} 
+                        className="p-2 hover:bg-blue-50 hover:text-blue-500 rounded-lg transition-all" 
+                        title="Edit Room"
+                      >
+                        <Edit size={18} />
+                      </button>
+                      <button 
+                        onClick={() => { setRoomToDelete(room); setShowDeleteModal(true); }} 
+                        className="p-2 hover:bg-red-50 hover:text-red-500 rounded-lg transition-all" 
+                        title="Delete Room"
+                      >
+                        <Trash2 size={18} />
+                      </button>
                     </div>
-                  </div>
-                </td>
-                <td className="px-6 py-4 text-xs text-slate-600">
-                    <div className="flex items-center gap-2">{room.maxAdults} Adults</div>
-                    <div className="flex items-center gap-2">{room.maxChildren} Kids</div>
-                </td>
-                <td className="px-6 py-4 font-serif text-[#bf9b30] font-bold">₱{Number(room.price).toLocaleString()}</td>
-                <td className="px-6 py-4">
-                  <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase border ${getStatusStyles(room.status)}`}>
-                    {room.status || 'Available'}
-                  </span>
-                </td>
-                <td className="px-6 py-4 text-right">
-                  <div className="flex justify-end gap-3 text-slate-400">
-                    <button onClick={() => openEditModal(room)} className="hover:text-blue-500"><Edit size={18} /></button>
-                    <button onClick={() => { setRoomToDelete(room); setShowDeleteModal(true); }} className="hover:text-red-500"><Trash2 size={18} /></button>
+                  </td>
+              </tr>
+            ))
+            ) : (
+              // Empty State Row
+              <tr>
+                <td colSpan="5" className="py-20">
+                  <div className="flex flex-col items-center justify-center text-center">
+                    <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-4 border border-black/5">
+                      <Search className="text-slate-300" size={32} />
+                    </div>
+                    <h3 className="text-lg font-bold text-slate-800 font-serif">No Rooms Found</h3>
+                    <p className="text-slate-400 text-sm max-w-xs mx-auto mt-1">
+                      We couldn't find any rooms matching your current filters. Try adjusting your search or clear all filters.
+                    </p>
+                    <button 
+                      onClick={clearFilters}
+                      className="mt-6 text-[#bf9b30] text-xs font-bold uppercase tracking-widest hover:underline"
+                    >
+                      Clear All Filters
+                    </button>
                   </div>
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>
+      
+      {/* VIEW ROOM DETAILS MODAL */}
+      {showViewModal && selectedRoom && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-[2.5rem] w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl relative">
+            <button onClick={() => setShowViewModal(false)} className="absolute top-6 right-6 z-10 p-2 bg-white/80 backdrop-blur rounded-full text-slate-400 hover:text-slate-600 shadow-sm border border-black/5">
+              <X size={20} />
+            </button>
+
+            {/* Room Image Header */}
+            <div className="h-64 w-full bg-slate-100 relative">
+               {selectedRoom.images?.[0] ? (
+                  <img 
+                    src={selectedRoom.images[0].startsWith('http') ? selectedRoom.images[0] : `${API_BASE_URL}${selectedRoom.images[0].startsWith('/') ? '' : '/'}${selectedRoom.images[0]}`} 
+                    className="w-full h-full object-cover" 
+                    alt="room-hero" 
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-full text-slate-300"><ImageIcon size={48} /></div>
+                )}
+                <div className="absolute bottom-0 left-0 w-full p-8 bg-gradient-to-t from-black/60 to-transparent">
+                   <span className="bg-[#bf9b30] text-white text-[10px] px-3 py-1 rounded-full font-bold uppercase tracking-widest mb-2 inline-block">
+                     {selectedRoom.roomType}
+                   </span>
+                   <h2 className="text-3xl font-bold text-white font-serif">Room {selectedRoom.roomNumber}</h2>
+                </div>
+            </div>
+
+            <div className="p-8 space-y-6">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-slate-400 text-xs font-bold uppercase tracking-tighter mb-1">Room Name</p>
+                  <p className="text-lg font-bold text-slate-800">{selectedRoom.roomName || 'Standard Room'}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-slate-400 text-xs font-bold uppercase tracking-tighter mb-1">Rate per Night</p>
+                  <p className="text-2xl font-bold text-[#bf9b30] font-serif">₱{Number(selectedRoom.price).toLocaleString()}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-slate-50 p-4 rounded-2xl border border-black/5">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase mb-2">Capacity</p>
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-1.5 text-sm font-bold text-slate-700">
+                      <Users size={16} className="text-[#bf9b30]" /> {selectedRoom.maxAdults} Adults
+                    </div>
+                    <div className="flex items-center gap-1.5 text-sm font-bold text-slate-700">
+                      {selectedRoom.maxChildren} Kids
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-slate-50 p-4 rounded-2xl border border-black/5">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase mb-2">Status</p>
+                  <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase border inline-block ${getStatusStyles(selectedRoom.status)}`}>
+                    {selectedRoom.status || 'Available'}
+                  </span>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-[10px] font-bold text-slate-400 uppercase mb-2">Amenities</p>
+                <div className="flex flex-wrap gap-2">
+                  {selectedRoom.amenities?.length > 0 ? selectedRoom.amenities.map((a, i) => (
+                    <span key={i} className="px-3 py-1.5 bg-slate-100 text-slate-600 rounded-lg text-xs font-medium border border-black/5">
+                      {a}
+                    </span>
+                  )) : <span className="text-xs text-slate-400 italic">No amenities listed</span>}
+                </div>
+              </div>
+
+              <div>
+                <p className="text-[10px] font-bold text-slate-400 uppercase mb-2">Description</p>
+                <p className="text-sm text-slate-500 leading-relaxed italic">
+                  "{selectedRoom.description || 'No description provided for this room.'}"
+                </p>
+              </div>
+
+              {/* Mini Gallery */}
+              {selectedRoom.images?.length > 1 && (
+                <div>
+                   <p className="text-[10px] font-bold text-slate-400 uppercase mb-2">Gallery</p>
+                   <div className="flex gap-2 overflow-x-auto pb-2">
+                      {selectedRoom.images.map((img, i) => (
+                        <img 
+                          key={i} 
+                          src={img.startsWith('http') ? img : `${API_BASE_URL}${img.startsWith('/') ? '' : '/'}${img}`} 
+                          className="w-20 h-20 rounded-xl object-cover border border-black/5 flex-shrink-0" 
+                          alt="gallery" 
+                        />
+                      ))}
+                   </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ADD/EDIT MODAL */}
       {showModal && (

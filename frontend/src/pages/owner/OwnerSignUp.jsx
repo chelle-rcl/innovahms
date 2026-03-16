@@ -11,7 +11,27 @@ export default function OwnerSignUp() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // ... (Your existing fetch logic remains the same)
+    try {
+      const response = await fetch('/api/owner/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert('Registration successful! Please log in to continue.');
+        navigate('/owner/login'); 
+      } else {
+        alert(data.error || 'Registration failed');
+      }
+    } catch (error) {
+      console.error('Signup error:', error);
+      alert('An error occurred. Please check if the server is running.');
+    }
   };
 
   return (
