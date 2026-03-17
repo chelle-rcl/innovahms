@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Mail, Lock, Phone, Eye, EyeOff, UserPlus } from "lucide-react";
+import { GoogleLogin } from '@react-oauth/google';
 
 export default function SignUp() {
   const [formData, setFormData] = useState({
@@ -64,6 +65,28 @@ export default function SignUp() {
       } else {
         // Account was created but auto-login failed — fall back to login page
         navigate("/login");
+      }
+    } catch (err) {
+      setError("Cannot connect to the server. Is Flask running?");
+    }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      const response = await fetch("/api/google-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: credentialResponse.credential }),
+      });
+
+      const result = await response.json();
+      
+      if (response.ok) {
+        localStorage.setItem("user", JSON.stringify(result.user));
+        window.dispatchEvent(new Event("userUpdated"));
+        navigate("/");
+      } else {
+        setError(result.error || "Google Login failed on the server.");
       }
     } catch (err) {
       setError("Cannot connect to the server. Is Flask running?");
@@ -207,6 +230,21 @@ export default function SignUp() {
               <UserPlus size={16} className="transition-transform group-hover:scale-110" />
             </button>
           </form>
+
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-slate-200"></span></div>
+            <div className="relative flex justify-center text-xs uppercase"><span className="bg-white px-2 text-slate-500 font-bold">Or continue with</span></div>
+          </div>
+
+          <div className="flex justify-center">
+            <GoogleLogin 
+              onSuccess={handleGoogleSuccess} 
+              onError={() => setError("Google Login Failed")}
+              useOneTap
+              theme="outline"
+              shape="pill"
+            />
+          </div>
 
           <div className="mt-6 border-t border-slate-200 pt-5 text-center">
             <p className="text-xs font-medium text-slate-800">

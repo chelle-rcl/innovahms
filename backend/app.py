@@ -6,6 +6,10 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import os
 from werkzeug.utils import secure_filename
 import json
+from google.oauth2 import id_token
+from google.auth.transport import requests
+
+GOOGLE_CLIENT_ID = "780199678192-krqs4tdu62ltsnb4nnq6td6mhed5mchr.apps.googleusercontent.com"
 
 app = Flask(__name__, static_folder='static')
 CORS(app)
@@ -39,8 +43,8 @@ def signup():
         conn = get_db_connection()
         cur = conn.cursor()
         cur.execute(
-            "INSERT INTO customers (first_name, last_name, email, contact_number, password_hash) VALUES (%s, %s, %s, %s, %s)",
-            (first_name, last_name, email, contact, hashed_pw)
+            "INSERT INTO customers (first_name, last_name, email, contact_number, password_hash, auth_provider) VALUES (%s, %s, %s, %s, %s, %s)",
+            (first_name, last_name, email, contact, hashed_pw, 'local')
         )
         conn.commit()
         cur.close()
@@ -48,6 +52,54 @@ def signup():
         return jsonify({"message": "User created successfully!"}), 201
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+    
+@app.route('/api/google-login', methods=['POST'])
+def google_login():
+    data = request.json
+    token = data.get('token')
+
+    try:
+        idinfo = id_token.verify_oauth2_token(token, requests.Request(), GOOGLE_CLIENT_ID)
+        email = idinfo['email']
+        
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        cur.execute("SELECT id, first_name, last_name, email, contact_number FROM customers WHERE email = %s", (email,))
+        user = cur.fetchone()
+
+        if not user:
+            first_name = idinfo.get('given_name', '')
+            last_name = idinfo.get('family_name', '')
+            cur.execute(
+                "INSERT INTO customers (first_name, last_name, email, auth_provider) VALUES (%s, %s, %s, %s) RETURNING id",
+                (first_name, last_name, email, 'google')
+            )
+            user_id = cur.fetchone()[0]
+            conn.commit()
+            
+            final_first_name = first_name
+            final_last_name = last_name
+            final_contact = ""
+        else:
+            user_id, final_first_name, final_last_name, db_email, final_contact = user
+
+        cur.close()
+        conn.close()
+
+        return jsonify({
+            "message": "Login successful!",
+            "user": {
+                "id": user_id,
+                "firstName": final_first_name, 
+                "lastName": final_last_name,
+                "email": email,
+                "contactNumber": final_contact
+            }
+        }), 200
+
+    except ValueError:
+        return jsonify({"error": "Invalid Google token"}), 400
 
 @app.route('/api/login', methods=['POST'])
 def login():
@@ -173,7 +225,7 @@ def owner_signup():
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
-# --- PROFILE UPDATES ---
+# --- PROFILE UPDATE ENDPOINTS ---
 
 @app.route('/api/user/update', methods=['PUT'])
 def update_user():
@@ -210,19 +262,27 @@ def change_password():
         cur.execute("SELECT password_hash FROM customers WHERE id = %s", (user_id,))
         result = cur.fetchone()
         
-        if result and check_password_hash(result[0], current_password):
-            new_hashed_pw = generate_password_hash(new_password)
+        existing_hash = result[0] if result else None
+        new_hashed_pw = generate_password_hash(new_password)
+
+        if existing_hash is None or existing_hash == "":
             cur.execute("UPDATE customers SET password_hash = %s WHERE id = %s", (new_hashed_pw, user_id))
             conn.commit()
-            status, msg = 200, "Password updated!"
+            return jsonify({"message": "Password set successfully!"}), 200
+        
+        elif check_password_hash(existing_hash, current_password):
+            cur.execute("UPDATE customers SET password_hash = %s WHERE id = %s", (new_hashed_pw, user_id))
+            conn.commit()
+            return jsonify({"message": "Password updated successfully!"}), 200
+        
         else:
-            status, msg = 401, "Current password incorrect"
+            return jsonify({"error": "Current password incorrect"}), 401
 
-        cur.close()
-        conn.close()
-        return jsonify({"message": msg}), status
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+    finally:
+        if cur: cur.close()
+        if conn: conn.close()
 
 # --- ROOM MANAGEMENT ENDPOINTS ---
 

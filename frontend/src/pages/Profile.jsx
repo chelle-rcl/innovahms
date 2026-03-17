@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 const Profile = () => {
   const [showToast, setShowToast] = useState(false);
   const [toastMsg, setToastMsg] = useState("");
-  const [toastType, setToastType] = useState("success"); // "success" | "error"
+  const [toastType, setToastType] = useState("success");
   const navigate = useNavigate();
 
   const [userInfo, setUserInfo] = useState({
@@ -61,16 +61,17 @@ const Profile = () => {
 
   const handleChangePassword = async () => {
     setPasswordError("");
-
-    // --- Frontend validation ---
-    if (!passwords.currentPassword || !passwords.newPassword || !passwords.confirmPassword) {
-      setPasswordError("All password fields are required.");
+    
+    if (!passwords.newPassword || !passwords.confirmPassword) {
+      setPasswordError("New password fields are required.");
       return;
     }
+
     if (passwords.newPassword !== passwords.confirmPassword) {
       setPasswordError("New passwords do not match.");
       return;
     }
+    
     if (passwords.newPassword.length < 8) {
       setPasswordError("New password must be at least 8 characters.");
       return;
@@ -82,7 +83,7 @@ const Profile = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           id: userInfo.id,
-          currentPassword: passwords.currentPassword,
+          currentPassword: passwords.currentPassword, 
           newPassword: passwords.newPassword,
         }),
       });
@@ -90,12 +91,10 @@ const Profile = () => {
       const data = await response.json();
 
       if (response.ok) {
-        triggerToast("Password changed successfully!");
+        triggerToast(data.message || "Password updated!");
         setPasswords({ currentPassword: "", newPassword: "", confirmPassword: "" });
-      } else if (response.status === 401) {
-        setPasswordError("Current password is incorrect.");
       } else {
-        triggerToast(data.error || "Failed to change password.", "error");
+        setPasswordError(data.error || "Failed to change password.");
       }
     } catch (err) {
       triggerToast("Failed to connect to server.", "error");
@@ -208,7 +207,7 @@ const Profile = () => {
                   type="password"
                   value={passwords.currentPassword}
                   onChange={handlePasswordChange}
-                  placeholder="••••••••"
+                  placeholder="Leave blank if first time" 
                   className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 focus:ring-1 focus:ring-innova-gold focus:border-innova-gold outline-none transition-all text-sm"
                 />
               </div>
