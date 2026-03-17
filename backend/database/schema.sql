@@ -14,7 +14,6 @@ CREATE TABLE IF NOT EXISTS customers (
 
 ALTER TABLE customers ALTER COLUMN password_hash DROP NOT NULL;
 ALTER TABLE customers ALTER COLUMN contact_number DROP NOT NULL;
--- Add a column to track the provider
 ALTER TABLE customers ADD COLUMN auth_provider VARCHAR(20) DEFAULT 'local';
 
 -- 2. Owners Table 

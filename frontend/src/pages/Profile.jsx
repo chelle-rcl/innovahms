@@ -107,7 +107,7 @@ const Profile = () => {
 
   const handlePasswordChange = (e) => {
     setPasswords({ ...passwords, [e.target.name]: e.target.value });
-    setPasswordError(""); // Clear error on input
+    setPasswordError(""); 
   };
 
   if (!userInfo.email) {
