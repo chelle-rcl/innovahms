@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Mail, Lock, Phone, Eye, EyeOff, UserPlus } from "lucide-react";
 import { GoogleLogin } from '@react-oauth/google';
+import FacebookLogin from 'react-facebook-login';
+import { Facebook } from "lucide-react"; 
 
 export default function SignUp() {
   const [formData, setFormData] = useState({
@@ -90,6 +92,29 @@ export default function SignUp() {
       }
     } catch (err) {
       setError("Cannot connect to the server. Is Flask running?");
+    }
+  };
+
+  const responseFacebook = async (response) => {
+    if (response.accessToken) {
+      try {
+        const res = await fetch("/api/facebook-login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ accessToken: response.accessToken }),
+        });
+
+        const result = await res.json();
+        if (res.ok) {
+          localStorage.setItem("user", JSON.stringify(result.user));
+          window.dispatchEvent(new Event("userUpdated"));
+          navigate("/");
+        } else {
+          setError(result.error || "Facebook Login failed.");
+        }
+      } catch (err) {
+        setError("Server connection error.");
+      }
     }
   };
 
@@ -236,14 +261,36 @@ export default function SignUp() {
             <div className="relative flex justify-center text-xs uppercase"><span className="bg-white px-2 text-slate-500 font-bold">Or continue with</span></div>
           </div>
 
-          <div className="flex justify-center">
-            <GoogleLogin 
-              onSuccess={handleGoogleSuccess} 
-              onError={() => setError("Google Login Failed")}
-              useOneTap
-              theme="outline"
-              shape="pill"
-            />
+          <div className="flex flex-col gap-3 w-full max-w-xs mx-auto">
+            <div className="w-full flex justify-center">
+              <GoogleLogin 
+                onSuccess={handleGoogleSuccess} 
+                onError={() => setError("Google Login Failed")}
+                theme="outline"
+                shape="pill"
+                width="280px" 
+              />
+            </div>
+          
+            <div style={{ display: 'none' }}>
+              <FacebookLogin
+                appId="760975413559116"
+                callback={responseFacebook}
+                fields="name,email,picture"
+                tag={({ onClick }) => (
+                  <button id="hidden-fb-btn" onClick={onClick} />
+                )}
+              />
+            </div>
+
+            <button 
+              type="button"
+              onClick={() => document.getElementById('hidden-fb-btn').click()}
+              className="flex items-center justify-center gap-3 w-[280px] mx-auto px-4 py-2.5 border border-slate-300 rounded-full text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-400 transition-all shadow-sm"
+            >
+              <Facebook size={20} className="text-[#1877F2] fill-[#1877F2]" />
+              <span>Continue with Facebook</span>
+            </button>
           </div>
 
           <div className="mt-6 border-t border-slate-200 pt-5 text-center">

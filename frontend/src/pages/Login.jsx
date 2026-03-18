@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, ArrowRight, Facebook } from "lucide-react"; // Added Facebook icon
 import { GoogleLogin } from "@react-oauth/google";
+import FacebookLogin from 'react-facebook-login'; // Standard import
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -13,20 +14,17 @@ export default function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
-
     try {
       const response = await fetch("/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
-
       const data = await response.json();
-
       if (response.ok) {
         localStorage.setItem("user", JSON.stringify(data.user));
+        window.dispatchEvent(new Event("userUpdated")); // Better than a full reload
         navigate("/");
-        window.location.reload(); 
       } else {
         setError(data.error || "Invalid email or password.");
       }
@@ -42,18 +40,38 @@ export default function Login() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token: credentialResponse.credential }),
       });
-
       const data = await response.json();
-
       if (response.ok) {
         localStorage.setItem("user", JSON.stringify(data.user));
+        window.dispatchEvent(new Event("userUpdated"));
         navigate("/");
-        window.location.reload();
       } else {
         setError(data.error || "Google login failed.");
       }
     } catch (err) {
       setError("Failed to connect to the server for Google login.");
+    }
+  };
+
+  const responseFacebook = async (response) => {
+    if (response.accessToken) {
+      try {
+        const res = await fetch("/api/facebook-login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ accessToken: response.accessToken }),
+        });
+        const result = await res.json();
+        if (res.ok) {
+          localStorage.setItem("user", JSON.stringify(result.user));
+          window.dispatchEvent(new Event("userUpdated"));
+          navigate("/");
+        } else {
+          setError(result.error || "Facebook Login failed.");
+        }
+      } catch (err) {
+        setError("Server connection error.");
+      }
     }
   };
 
@@ -90,46 +108,19 @@ export default function Login() {
           </div>
 
           <div>
-            <label className="block text-xs font-bold uppercase tracking-widest text-slate-800 mb-2">
-              Password
-            </label>
+            <label className="block text-xs font-bold uppercase tracking-widest text-slate-800 mb-2">Password</label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-500">
-                <Lock size={18} />
-              </div>
-              <input
-                type={showPassword ? "text" : "password"}
-                required
-                className="block w-full rounded-xl border border-slate-300 bg-white py-3 pl-10 pr-12 text-sm text-slate-900 transition-all focus:border-yellow-600 focus:outline-none focus:ring-4 focus:ring-yellow-600/10"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-              <button 
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-500 hover:text-slate-800"
-              >
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-500"><Lock size={18} /></div>
+              <input type={showPassword ? "text" : "password"} required className="block w-full rounded-xl border border-slate-300 bg-white py-3 pl-10 pr-12 text-sm text-slate-900 transition-all focus:border-yellow-600 focus:outline-none focus:ring-4 focus:ring-yellow-600/10" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} />
+              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-500 hover:text-slate-800">
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
-
-            {error && (
-              <p className="mt-2 text-red-500 text-xs font-medium flex items-center gap-1">
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-                </svg>
-                {error}
-              </p>
-            )}
+            {error && <p className="mt-2 text-red-500 text-xs font-medium flex items-center gap-1"><span className="w-3 h-3 border border-red-500 rounded-full flex items-center justify-center text-[8px]">!</span> {error}</p>}
           </div>
 
-          <button
-            type="submit"
-            className="group relative flex w-full items-center justify-center gap-2 rounded-xl bg-[#bc9a33] py-3.5 text-sm font-bold text-white shadow-lg shadow-yellow-700/20 transition-all hover:bg-[#a6882d] hover:shadow-yellow-700/30 active:scale-[0.98]"
-          >
-            Log In
-            <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
+          <button type="submit" className="group relative flex w-full items-center justify-center gap-2 rounded-xl bg-[#bc9a33] py-3.5 text-sm font-bold text-white shadow-lg shadow-yellow-700/20 transition-all hover:bg-[#a6882d] hover:shadow-yellow-700/30 active:scale-[0.98]">
+            Log In <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
           </button>
         </form>
 
@@ -138,14 +129,34 @@ export default function Login() {
           <div className="relative flex justify-center text-xs uppercase"><span className="bg-white px-2 font-bold text-slate-400">Or continue with</span></div>
         </div>
 
-        <div className="flex justify-center">
+        <div className="flex flex-col gap-4 items-center">
           <GoogleLogin 
             onSuccess={handleGoogleSuccess} 
             onError={() => setError("Google Login Failed")}
-            useOneTap
             theme="outline"
-            shape="circle"
+            shape="pill"
+            width="250px"
           />
+
+          <div style={{ display: 'none' }}>
+            <FacebookLogin
+              appId="760975413559116"
+              callback={responseFacebook}
+              fields="name,email,picture"
+              tag={({ onClick }) => (
+                <button id="hidden-fb-login" onClick={onClick} />
+              )}
+            />
+          </div>
+
+          <button 
+            type="button"
+            onClick={() => document.getElementById('hidden-fb-login').click()}
+            className="flex items-center justify-center gap-3 w-[250px] px-4 py-2 border border-slate-300 rounded-full text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-all shadow-sm"
+          >
+            <Facebook size={18} className="text-[#1877F2] fill-[#1877F2]" />
+            <span>Continue with Facebook</span>
+          </button>
         </div>
 
         <div className="mt-8 border-t border-slate-200 pt-6 text-center">

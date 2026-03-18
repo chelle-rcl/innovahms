@@ -7,7 +7,8 @@ import os
 from werkzeug.utils import secure_filename
 import json
 from google.oauth2 import id_token
-from google.auth.transport import requests
+from google.auth.transport import requests as google_requests  
+import requests  
 
 GOOGLE_CLIENT_ID = "780199678192-krqs4tdu62ltsnb4nnq6td6mhed5mchr.apps.googleusercontent.com"
 
@@ -59,7 +60,7 @@ def google_login():
     token = data.get('token')
 
     try:
-        idinfo = id_token.verify_oauth2_token(token, requests.Request(), GOOGLE_CLIENT_ID)
+        idinfo = id_token.verify_oauth2_token(token, google_requests.Request(), GOOGLE_CLIENT_ID)
         email = idinfo['email']
         
         conn = get_db_connection()
@@ -100,6 +101,60 @@ def google_login():
 
     except ValueError:
         return jsonify({"error": "Invalid Google token"}), 400
+    
+@app.route('/api/facebook-login', methods=['POST'])
+def facebook_login():
+    data = request.json
+    access_token = data.get('accessToken')
+
+    # Verify the token with Facebook Graph API
+    fb_url = f"https://graph.facebook.com/me?fields=id,first_name,last_name,email&access_token={access_token}"
+    fb_response = requests.get(fb_url).json()
+
+    if 'error' in fb_response:
+        return jsonify({"error": "Invalid Facebook token"}), 400
+
+    email = fb_response.get('email')
+    # Note: Some FB users don't have emails linked; you might need a fallback
+    if not email:
+        email = f"{fb_response['id']}@facebook.com" 
+
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        cur.execute("SELECT id, first_name, last_name, email, contact_number FROM customers WHERE email = %s", (email,))
+        user = cur.fetchone()
+
+        if not user:
+            first_name = fb_response.get('first_name', '')
+            last_name = fb_response.get('last_name', '')
+            cur.execute(
+                "INSERT INTO customers (first_name, last_name, email, auth_provider) VALUES (%s, %s, %s, %s) RETURNING id",
+                (first_name, last_name, email, 'facebook')
+            )
+            user_id = cur.fetchone()[0]
+            conn.commit()
+            final_first_name, final_last_name, final_contact = first_name, last_name, ""
+        else:
+            user_id, final_first_name, final_last_name, _, final_contact = user
+
+        cur.close()
+        conn.close()
+
+        return jsonify({
+            "message": "Login successful!",
+            "user": {
+                "id": user_id,
+                "firstName": final_first_name, 
+                "lastName": final_last_name,
+                "email": email,
+                "contactNumber": final_contact
+            }
+        }), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/api/login', methods=['POST'])
 def login():
