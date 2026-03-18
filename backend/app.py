@@ -107,7 +107,6 @@ def facebook_login():
     data = request.json
     access_token = data.get('accessToken')
 
-    # Verify the token with Facebook Graph API
     fb_url = f"https://graph.facebook.com/me?fields=id,first_name,last_name,email&access_token={access_token}"
     fb_response = requests.get(fb_url).json()
 
@@ -115,7 +114,6 @@ def facebook_login():
         return jsonify({"error": "Invalid Facebook token"}), 400
 
     email = fb_response.get('email')
-    # Note: Some FB users don't have emails linked; you might need a fallback
     if not email:
         email = f"{fb_response['id']}@facebook.com" 
 
