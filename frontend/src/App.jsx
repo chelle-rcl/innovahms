@@ -3,8 +3,9 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
 // Layouts
-import CustomerLayout from "./layouts/CustomerLayout";
 import OwnerLayout from "./layouts/OwnerLayout"; 
+import CustomerLayout from "./layouts/CustomerLayout";
+import SuperadminLayout from "./layouts/SuperadminLayout";
 
 // Owner Pages 
 import OwnerDashboard from "./pages/owner/Dashboard";
@@ -25,6 +26,21 @@ import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import Booking from "./pages/Booking";
 import Profile from "./pages/Profile";
+
+// Superadmin Pages
+import SuperadminLogin from "./pages/superadmin/SuperadminLogin";
+import SuperadminDashboard from "./pages/superadmin/Dashboard";
+import SuperadminCustomers from "./pages/superadmin/Customers";
+import SuperadminHotelOwner from "./pages/superadmin/HotelOwner";
+import SuperadminStaff from "./pages/superadmin/Staff";
+import SuperadminReports from "./pages/superadmin/Reports";
+import SuperadminSettings from "./pages/superadmin/Settings";
+import SuperadminAiConfig from "./pages/superadmin/AiConfig";
+import SuperadminHome from "./pages/superadmin/Home";
+import SuperadminMapServices from "./pages/superadmin/MapServices";
+import SuperadminMemPackage from "./pages/superadmin/MemPackage";
+import SuperadminReviews from "./pages/superadmin/Reviews";
+import SuperadminSystemLogs from "./pages/superadmin/SystemLogs";
 
 function App() {
   const googleClientId = "780199678192-krqs4tdu62ltsnb4nnq6td6mhed5mchr.apps.googleusercontent.com";
@@ -57,6 +73,25 @@ function App() {
             <Route path="staff" element={<OwnerStaff />} />
             <Route path="reports" element={<OwnerReports />} />
             <Route path="reviews" element={<OwnerReviews />} />
+          </Route>
+
+          {/* --- SUPERADMIN AUTH --- */}
+          <Route path="/superadmin/login" element={<SuperadminLogin />} />
+
+          {/* --- SUPERADMIN PROTECTED ROUTES --- */}
+          <Route path="/superadmin" element={<SuperadminLayout />}>
+            <Route index element={<SuperadminDashboard />} /> 
+            <Route path="customers" element={<SuperadminCustomers />} />
+            <Route path="owners" element={<SuperadminHotelOwner />} />
+            <Route path="staff" element={<SuperadminStaff />} />
+            <Route path="reports" element={<SuperadminReports />} />
+            <Route path="settings" element={<SuperadminSettings />} />
+            <Route path="aiconfig" element={<SuperadminAiConfig />} />
+            <Route path="home" element={<SuperadminHome />} />
+            <Route path="mapservices" element={<SuperadminMapServices />} />
+            <Route path="mempackage" element={<SuperadminMemPackage />} />
+            <Route path="reviews" element={<SuperadminReviews />} />
+            <Route path="systemlogs" element={<SuperadminSystemLogs />} />
           </Route>
         </Routes>
       </Router>
