@@ -75,20 +75,7 @@ const SuperadminSidebar = ({ isDarkMode }) => {
           </div>
         </div>
 
-        {/* 2. PROFILE MINI-CARD */}
-        <div className="px-4 mb-6 shrink-0">
-          <div className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${isDarkMode ? 'bg-[#c9a84c]/5 border-[#c9a84c]/10' : 'bg-white border-gray-200 shadow-sm'}`}>
-            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#c9a84c] to-[#a68a3e] flex items-center justify-center text-black text-sm shadow-lg">
-              <span className="font-black">AM</span>
-            </div>
-            <div className="overflow-hidden text-left">
-              <h4 className={`text-[11px] font-black uppercase tracking-tight leading-none ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Alex Mendoza</h4>
-              <p className="text-[8px] font-bold text-[#c9a84c] uppercase tracking-widest mt-1.5 opacity-80">Superadmin</p>
-            </div>
-          </div>
-        </div>
-
-        {/* 3. NAVIGATION LINKS */}
+        {/* 2. NAVIGATION LINKS */}
         <div className="flex-1 px-3 space-y-6 pb-6 text-left">
           {menuSections.map((section, idx) => (
             <div key={idx} className="space-y-1">
@@ -123,7 +110,7 @@ const SuperadminSidebar = ({ isDarkMode }) => {
           ))}
         </div>
 
-        {/* 4. FOOTER ACTIONS */}
+        {/* 3. FOOTER ACTIONS */}
         <div className={`p-4 border-t space-y-2 shrink-0 ${isDarkMode ? 'border-white/5' : 'border-gray-200'}`}>
           <Link 
             to="/superadmin/settings" 
@@ -135,9 +122,6 @@ const SuperadminSidebar = ({ isDarkMode }) => {
           >
             <SettingsIcon size={14} /> Settings
           </Link>
-          <button className={`w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg transition-all font-black text-[10px] uppercase tracking-[0.1em] border ${isDarkMode ? 'bg-transparent text-gray-500 border-white/5 hover:text-red-500 hover:bg-red-500/10' : 'bg-transparent text-gray-500 border-gray-200 hover:text-red-600 hover:bg-red-50'}`}>
-            <LogOut size={14} /> Logout
-          </button>
         </div>
       </div>
 

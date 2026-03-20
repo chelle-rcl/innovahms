@@ -7,8 +7,8 @@ const SuperadminHeader = ({ isDarkMode, toggleTheme }) => {
   const navigate = useNavigate();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const menuRef = useRef(null);
+  const adminName = localStorage.getItem('adminName') || 'Administrator';
 
-  // Isara ang dropdown kapag nag-click sa labas
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) setShowProfileMenu(false);
@@ -18,7 +18,8 @@ const SuperadminHeader = ({ isDarkMode, toggleTheme }) => {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('superadminSession');
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('adminName');
     navigate('/superadmin/login');
   };
 
@@ -76,14 +77,18 @@ const SuperadminHeader = ({ isDarkMode, toggleTheme }) => {
                 <User size={18} />
               </div>
             </div>
+            
             <div className="text-left hidden sm:block">
-              <p className={`text-xs font-bold uppercase leading-none ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Alex Mendoza</p>
+              <p className={`text-xs font-bold uppercase leading-none ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
+                {adminName}
+              </p>
               <p className="text-[9px] font-bold text-[#c9a84c]/60 tracking-widest mt-1">SUPERADMIN</p>
             </div>
+            
             <ChevronDown size={14} className={`text-gray-500 transition-transform ${showProfileMenu ? 'rotate-180' : ''}`} />
           </button>
 
-          {/* DROPDOWN MENU - IBINALIK ANG MGA SETTINGS */}
+          {/* DROPDOWN MENU */}
           {showProfileMenu && (
             <div className={`absolute right-0 mt-3 w-56 border rounded-2xl shadow-2xl p-2 z-50 animate-in fade-in zoom-in duration-200 
               ${isDarkMode ? 'bg-[#14130f] border-white/10 text-gray-300' : 'bg-white border-gray-100 text-gray-700'}`}>
@@ -100,7 +105,7 @@ const SuperadminHeader = ({ isDarkMode, toggleTheme }) => {
                 onClick={handleLogout} 
                 className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-red-500/10 text-red-500 text-xs transition-all font-bold"
               >
-                <LogOut size={16} /> Logout System
+                <LogOut size={16} /> Logout
               </button>
             </div>
           )}

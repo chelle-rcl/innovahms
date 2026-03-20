@@ -52,3 +52,13 @@ CREATE TABLE IF NOT EXISTS rooms (
     status VARCHAR(20) DEFAULT 'Available' CHECK (status IN ('Available', 'Occupied', 'Maintenance', 'Cleaning')),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- 5. Superadmin Table
+CREATE TABLE IF NOT EXISTS superadmins (
+    id SERIAL PRIMARY KEY,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

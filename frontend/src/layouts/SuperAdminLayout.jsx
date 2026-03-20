@@ -1,13 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { Outlet } from 'react-router-dom'; // Import Outlet
+import { Outlet, useNavigate } from 'react-router-dom'; 
 import SuperadminSidebar from '../components/SuperadminSidebar'; 
 import SuperadminHeader from '../components/SuperadminHeader';
 
 const SuperadminLayout = () => {
+  const navigate = useNavigate(); 
+  
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem('theme');
     return saved ? saved === 'dark' : true;
   });
+
+  useEffect(() => {
+    const userRole = localStorage.getItem('userRole');
+    
+    if (userRole !== 'superadmin') {
+      navigate('/superadmin/login', { replace: true });
+    }
+  }, [navigate]);
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -21,6 +31,10 @@ const SuperadminLayout = () => {
   }, [isDarkMode]);
 
   const toggleTheme = () => setIsDarkMode(!isDarkMode);
+
+  if (localStorage.getItem('userRole') !== 'superadmin') {
+    return null;
+  }
 
   return (
     <div className={`flex min-h-screen transition-colors duration-300 ${isDarkMode ? 'bg-[#09090b]' : 'bg-gray-50'}`}>

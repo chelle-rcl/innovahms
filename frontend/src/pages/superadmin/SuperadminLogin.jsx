@@ -11,18 +11,37 @@ const SuperadminLogin = () => {
 
   useEffect(() => { setIsVisible(true); }, []);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
     setFeedback('');
     
-    setTimeout(() => {
-      if(formData.email.includes("admin")) navigate('/superadmin');
-      else {
-        setFeedback("Invalid credentials.");
+    try {
+      const response = await fetch('/api/superadmin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Store the session
+        localStorage.setItem('userRole', 'superadmin');
+        localStorage.setItem('adminName', data.user.name);
+        
+        // Brief delay for the "Establishing Bridge" animation feel
+        setTimeout(() => {
+          navigate('/superadmin');
+        }, 1500);
+      } else {
+        setFeedback(data.error || "Invalid credentials.");
         setIsSubmitting(false);
       }
-    }, 2000);
+    } catch (err) {
+      setFeedback("Connection failed. Check if backend is running.");
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -75,7 +94,7 @@ const SuperadminLogin = () => {
         <div className="relative z-10">
           <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/5">
             <p className="text-[10px] text-gray-500 leading-relaxed font-medium uppercase tracking-wide">
-              Node: <span className="text-gray-300">Manila HQ</span><br/>
+              Node: <span className="text-gray-300">Caloocan HQ</span><br/>
               Environment: <span className="text-[#bf9b30]">Stable Production</span>
             </p>
           </div>
