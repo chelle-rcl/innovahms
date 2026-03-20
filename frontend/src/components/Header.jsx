@@ -1,8 +1,9 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { 
   User, LogOut, Settings, ChevronDown, 
-  Sun, Moon, Search, Building2, Users 
+  Sun, Moon, Search, Building2, Users, ShieldCheck,
+  Briefcase 
 } from "lucide-react";
 
 export default function Header() {
@@ -12,21 +13,22 @@ export default function Header() {
   const [isSignupDropdownOpen, setIsSignupDropdownOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // Unified closer for all dropdowns
   const closeAllDropdowns = () => {
     setIsUserDropdownOpen(false);
     setIsLoginDropdownOpen(false);
     setIsSignupDropdownOpen(false);
   };
 
-  // Handle Theme Change
+  // --- THEME LOGIC ---
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
-    if (savedTheme === "dark" || (!savedTheme && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
-      setIsDarkMode(true);
-      document.documentElement.classList.add("dark");
-    }
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const shouldUseDark = savedTheme ? savedTheme === "dark" : prefersDark;
+
+    setIsDarkMode(shouldUseDark);
+    document.documentElement.classList.toggle("dark", shouldUseDark);
   }, []);
 
   const toggleTheme = () => {
@@ -41,35 +43,109 @@ export default function Header() {
     }
   };
 
+  // --- USER LOADING LOGIC ---
   const loadUser = () => {
-    const savedUser = localStorage.getItem("user");
-    setUser(savedUser ? JSON.parse(savedUser) : null);
+    const savedCustomer = localStorage.getItem("user");
+    const savedStaff = localStorage.getItem("staffUser");
+
+    if (savedStaff) {
+      const parsedStaff = JSON.parse(savedStaff);
+      setUser({
+        ...parsedStaff,
+        displayName: parsedStaff.firstName || parsedStaff.name || "Staff",
+        isStaff: true,
+        role: parsedStaff.role || "Staff"
+      });
+    } else if (savedCustomer) {
+      const parsedCustomer = JSON.parse(savedCustomer);
+      setUser({
+        ...parsedCustomer,
+        displayName: parsedCustomer.firstName || "User",
+        isStaff: false
+      });
+    } else {
+      setUser(null);
+    }
   };
 
   useEffect(() => {
     loadUser();
     window.addEventListener("userUpdated", loadUser);
-    return () => window.removeEventListener("userUpdated", loadUser);
+    window.addEventListener("storage", loadUser); 
+    return () => {
+      window.removeEventListener("userUpdated", loadUser);
+      window.removeEventListener("storage", loadUser);
+    };
   }, []);
 
+  // --- LOGOUT LOGIC (REDIRECT TO HOME) ---
   const handleLogout = () => {
     localStorage.removeItem("user");
+    localStorage.removeItem("staffUser");
+    localStorage.removeItem("staffSession");
+    localStorage.removeItem("hrSession");
+    localStorage.removeItem("adminSession");
+    localStorage.removeItem("ownerSession");
+
     setUser(null);
     closeAllDropdowns();
-    navigate("/login");
+
+    window.dispatchEvent(new Event("userUpdated"));
+
+    navigate("/"); 
+  };
+
+  const handleLogoClick = (e) => {
+    e.preventDefault();
+    closeAllDropdowns();
+
+    if (location.pathname !== "/") {
+      navigate("/");
+    }
+
+    window.requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }, 120);
+  };
+
+  const scrollToHomeSection = (sectionId) => {
+    closeAllDropdowns();
+    if (location.pathname !== "/") {
+      navigate("/");
+      setTimeout(() => {
+        document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 180);
+      return;
+    }
+
+    document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const goToCustomerAccount = () => {
+    closeAllDropdowns();
+    navigate("/customer/dashboard");
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-gold-500/20 bg-white/70 backdrop-blur-md transition-colors duration-300 dark:border-white/10 dark:bg-zinc-950/80">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
+    <header className="fixed top-0 left-0 right-0 z-[1000] w-full border-b border-[#c9a84c]/20 bg-white/80 backdrop-blur-md shadow-sm transition-colors duration-300 dark:border-white/10 dark:bg-zinc-950/85">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3 relative">
         
-        {/* Left: Logo Section */}
-        <Link to="/" className="relative flex items-center group">
-          <img src="/images/logo.png" alt="Logo" className="h-10 w-auto scale-125 origin-left" />
-          <div className="h-8 w-32 sm:w-40"></div>
-        </Link>
+        {/* LEFT: LOGO */}
+        <div className="flex-shrink-0 w-48">
+          <Link 
+            to="/" 
+            onClick={handleLogoClick}
+            className="relative flex items-center group"
+          >
+            <img src="/images/logo.png" alt="Logo" className="h-10 w-auto scale-125 origin-left" />
+            <div className="h-8 w-32 sm:w-40"></div>
+          </Link>
+        </div>
 
-        {/* Center: Navigation */}
+        {/* CENTER: NAVIGATION */}
         <nav className="hidden lg:flex items-center gap-1 rounded-full border border-zinc-200 bg-zinc-100/50 p-1 dark:border-white/10 dark:bg-white/5">
           {[
             { name: "Suites", id: "suites" },
@@ -82,20 +158,19 @@ export default function Header() {
               href={`#${link.id}`} 
               onClick={(e) => {
                 e.preventDefault();
-                document.getElementById(link.id)?.scrollIntoView({ behavior: "smooth" });
+                scrollToHomeSection(link.id);
               }}
-              className="cursor-pointer rounded-full px-4 py-1.5 text-sm font-medium text-zinc-600 transition-all hover:bg-white hover:text-[#bf9b30] hover:shadow-sm dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white"
+              className="cursor-pointer rounded-full px-4 py-1.5 text-sm font-medium text-zinc-600 transition-all hover:bg-white hover:text-[#c9a84c] dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white"
             >
               {link.name}
             </a>
           ))}
         </nav>
 
-        {/* Right: Actions Section */}
-        <div className="flex items-center gap-4">
+        {/* RIGHT: ACTIONS */}
+        <div className="flex items-center gap-4 flex-shrink-0">
           
-          {/* Search Bar */}
-          <div className="hidden md:flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 dark:border-white/10 dark:bg-zinc-900">
+          <div className="hidden md:flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 dark:border-white/10 dark:bg-zinc-900 focus-within:ring-1 focus-within:ring-[#c9a84c]/30 transition-all">
             <Search size={16} className="text-zinc-400" />
             <input 
               type="text" 
@@ -104,7 +179,6 @@ export default function Header() {
             />
           </div>
 
-          {/* Theme Switcher */}
           <button 
             onClick={toggleTheme}
             className="flex h-9 w-9 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-600 shadow-sm transition-all hover:bg-zinc-50 dark:border-white/10 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800"
@@ -114,8 +188,17 @@ export default function Header() {
 
           <div className="h-8 w-[1px] bg-zinc-200 dark:bg-white/10 mx-1"></div>
 
+          {user && !user.isStaff && (
+            <button
+              type="button"
+              onClick={goToCustomerAccount}
+              className="hidden sm:inline-flex items-center rounded-full border border-[#c9a84c]/40 bg-[#c9a84c]/10 px-4 py-2 text-[11px] font-black uppercase tracking-widest text-[#a37f2e] transition-all hover:bg-[#c9a84c] hover:text-white dark:text-[#f0cf7f] dark:hover:text-[#1a160d]"
+            >
+              My Account
+            </button>
+          )}
+
           {user ? (
-            /* USER LOGGED IN DROPDOWN */
             <div className="relative">
               <button 
                 onClick={() => {
@@ -123,21 +206,52 @@ export default function Header() {
                   closeAllDropdowns();
                   setIsUserDropdownOpen(!currentState);
                 }}
-                className="flex items-center gap-2 rounded-full bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white transition-all hover:bg-zinc-800 dark:bg-[#bf9b30]"
+                className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium text-white transition-all shadow-md ${
+                    user.isStaff 
+                    ? 'bg-[#b3903c] hover:bg-[#96772f]' 
+                    : 'bg-zinc-900 hover:bg-zinc-800 dark:bg-[#c9a84c] dark:hover:bg-[#a68a3e]'
+                }`}
               >
                 <div className="h-6 w-6 overflow-hidden rounded-full border border-white/20 bg-zinc-700 flex items-center justify-center">
-                   <User size={14} />
+                   {user.isStaff ? <Briefcase size={12} /> : <User size={12} />}
                 </div>
-                <span className="hidden sm:inline">{user.firstName}</span>
+                <span className="hidden sm:inline">
+                    {user.displayName} {user.isStaff && `(${user.role})`}
+                </span>
                 <ChevronDown size={14} className={`transition-transform ${isUserDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {isUserDropdownOpen && (
-                <div className="absolute right-0 mt-3 w-56 origin-top-right rounded-2xl border border-zinc-200 bg-white p-2 shadow-2xl ring-1 ring-black/5 dark:border-white/10 dark:bg-zinc-900">
-                  <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-zinc-400">Account</div>
-                  <Link to="/profile" onClick={closeAllDropdowns} className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-white/5">
-                    <Settings size={18} /> Profile Settings
-                  </Link>
+                <div className="absolute right-0 mt-3 w-56 origin-top-right rounded-2xl border border-zinc-200 bg-white p-2 shadow-2xl z-50 dark:border-white/10 dark:bg-zinc-900">
+                  <div className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                    {user.isStaff ? "Staff Portal Access" : "Member Account"}
+                  </div>
+                  {user.isStaff ? (
+                    <Link
+                      to="/staff/profile"
+                      onClick={closeAllDropdowns}
+                      className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-white/5"
+                    >
+                      <Settings size={18} /> Profile Settings
+                    </Link>
+                  ) : (
+                    <>
+                      <Link
+                        to="/customer/dashboard"
+                        onClick={closeAllDropdowns}
+                        className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-white/5"
+                      >
+                        <User size={18} /> My Account Dashboard
+                      </Link>
+                      <Link
+                        to="/profile"
+                        onClick={closeAllDropdowns}
+                        className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-white/5"
+                      >
+                        <Settings size={18} /> Profile Settings
+                      </Link>
+                    </>
+                  )}
                   <div className="my-1 h-[1px] bg-zinc-100 dark:bg-white/5"></div>
                   <button onClick={handleLogout} className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10">
                     <LogOut size={18} /> Log Out
@@ -146,10 +260,8 @@ export default function Header() {
               )}
             </div>
           ) : (
-            /* AUTH DROPDOWNS (LOGIN & SIGNUP) */
             <div className="flex items-center gap-2">
-              
-              {/* Login Dropdown */}
+              {/* LOGIN DROPDOWN */}
               <div className="relative">
                 <button 
                   onClick={() => {
@@ -157,23 +269,30 @@ export default function Header() {
                     closeAllDropdowns();
                     setIsLoginDropdownOpen(!currentState);
                   }}
-                  className="flex items-center gap-1 px-4 py-2 text-sm font-semibold text-[#bf9b30] hover:text-[#a68628] dark:text-white"
+                  className="flex items-center gap-1 px-4 py-2 text-sm font-semibold text-[#c9a84c] hover:text-[#a68a3e] dark:text-white"
                 >
                   Login <ChevronDown size={14} className={`transition-transform ${isLoginDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
+
                 {isLoginDropdownOpen && (
-                  <div className="absolute right-0 mt-3 w-56 origin-top-right rounded-2xl border border-zinc-200 bg-white p-2 shadow-2xl ring-1 ring-black/5 dark:border-white/10 dark:bg-zinc-900">
+                  <div className="absolute right-0 mt-3 w-64 origin-top-right rounded-2xl border border-zinc-200 bg-white p-2 shadow-2xl z-50 dark:border-white/10 dark:bg-zinc-900">
                     <Link to="/login" onClick={closeAllDropdowns} className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-white/5">
-                      <Users size={18} className="text-[#bf9b30]" /> Login as Customer
+                      <Users size={18} className="text-[#c9a84c]" /> Login as Customer
                     </Link>
-                    <Link to="/owner/login" onClick={closeAllDropdowns} className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-white/5 border-t border-zinc-100 dark:border-white/5">
-                      <Building2 size={18} className="text-[#bf9b30]" /> Login as Owner
+                    <Link to="/owner/login" onClick={closeAllDropdowns} className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-white/5 border-t border-zinc-50 dark:border-white/5">
+                      <Building2 size={18} className="text-[#c9a84c]" /> Login as Hotel Owner
+                    </Link>
+                    <Link to="/staff/login" onClick={closeAllDropdowns} className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-white/5 border-t border-zinc-50 dark:border-white/5">
+                      <Briefcase size={18} className="text-[#c9a84c]" /> Login as Hotel Staff
+                    </Link>
+                    <Link to="/superadmin/login" onClick={closeAllDropdowns} className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-white/5 border-t border-zinc-50 dark:border-white/5">
+                      <ShieldCheck size={18} className="text-[#c9a84c]" /> Superadmin
                     </Link>
                   </div>
                 )}
               </div>
 
-              {/* Signup Dropdown */}
+              {/* SIGNUP DROPDOWN */}
               <div className="relative">
                 <button 
                   onClick={() => {
@@ -181,17 +300,20 @@ export default function Header() {
                     closeAllDropdowns();
                     setIsSignupDropdownOpen(!currentState);
                   }}
-                  className="flex items-center gap-1 rounded-full bg-[#bf9b30] px-5 py-2 text-sm font-bold text-white shadow-lg shadow-[#bf9b30]/30 transition-all hover:scale-105 hover:bg-[#a68628]"
+                  className="flex items-center gap-1 rounded-full bg-[#c9a84c] px-5 py-2 text-sm font-bold text-white shadow-lg shadow-[#c9a84c]/30 transition-all hover:scale-105 hover:bg-[#a68a3e]"
                 >
-                  REGISTER <ChevronDown size={14} className={`transition-transform ${isSignupDropdownOpen ? 'rotate-180' : ''}`} />
+                  Register <ChevronDown size={14} className={`transition-transform ${isSignupDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
                 {isSignupDropdownOpen && (
-                  <div className="absolute right-0 mt-3 w-56 origin-top-right rounded-2xl border border-zinc-200 bg-white p-2 shadow-2xl ring-1 ring-black/5 dark:border-white/10 dark:bg-zinc-900">
+                  <div className="absolute right-0 mt-3 w-64 origin-top-right rounded-2xl border border-zinc-200 bg-white p-2 shadow-2xl z-50 dark:border-white/10 dark:bg-zinc-900">
                     <Link to="/signup" onClick={closeAllDropdowns} className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-white/5">
-                      <Users size={18} className="text-[#bf9b30]" /> Signup as Customer
+                      <Users size={18} className="text-[#c9a84c]" /> Signup as Customer
                     </Link>
                     <Link to="/owner/signup" onClick={closeAllDropdowns} className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-white/5 border-t border-zinc-100 dark:border-white/5">
-                      <Building2 size={18} className="text-[#bf9b30]" /> Signup as Owner
+                      <Building2 size={18} className="text-[#c9a84c]" /> Signup as Owner
+                    </Link>
+                    <Link to="/staff/signup" onClick={closeAllDropdowns} className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-white/5 border-t border-zinc-100 dark:border-white/5">
+                      <Briefcase size={18} className="text-[#c9a84c]" /> Sign as Staff
                     </Link>
                   </div>
                 )}
