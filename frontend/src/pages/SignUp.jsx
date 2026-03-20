@@ -119,9 +119,9 @@ export default function SignUp() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-100 px-4 py-4 sm:px-6">
+    <div className="flex min-h-screen items-center justify-center bg-slate-100 px-4 py-1 overflow-y-auto">
       
-      <div className="flex w-full max-w-5xl max-h-[92vh] -mt-20 overflow-hidden rounded-3xl border border-white/30 bg-white shadow-2xl backdrop-blur-md transition-all duration-500">
+      <div className="flex w-full max-w-5xl lg:h-[85vh] overflow-hidden rounded-3xl border border-white/30 bg-white shadow-2xl backdrop-blur-md">
         
         {/* Left Side: Image*/}
         <div className="relative hidden w-1/2 lg:block group">
