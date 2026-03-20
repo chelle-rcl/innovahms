@@ -81,7 +81,7 @@ export default function Login() {
       style={{ backgroundImage: "url('/images/login-bg-img.png')" }}
     >
       <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px]" />
-      <div className="relative z-10 w-full max-w-md mt-16 mb-8 rounded-2xl border border-white/20 bg-white/95 p-10 shadow-2xl backdrop-blur-md">
+      <div className="relative z-10 w-full max-w-md mt-5 mb-8 rounded-2xl border border-white/20 bg-white/95 p-10 shadow-2xl backdrop-blur-md">
         <div className="text-center">
           <h2 className="text-3xl font-extrabold tracking-tight text-[#bf9b30]">Welcome Back</h2>
           <p className="mt-3 text-sm font-medium text-slate-700">Login to Your Account</p>
