@@ -5,7 +5,7 @@ import { GoogleLogin } from '@react-oauth/google';
 import FacebookLogin from 'react-facebook-login';
 import { Facebook } from "lucide-react"; 
 
-export default function SignUp() {
+export default function CustomerSignUp() {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",

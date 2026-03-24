@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
 // Layouts
@@ -21,11 +21,11 @@ import OwnerLogin from "./pages/owner/OwnerLogin";
 import OwnerSignUp from "./pages/owner/OwnerSignUp";
 
 // Customer Pages
-import Home from "./pages/Home";
-import Login from "./pages/Login";
-import SignUp from "./pages/SignUp";
-import Booking from "./pages/Booking";
-import Profile from "./pages/Profile";
+import Home from "./pages/customer/Home";
+import CustomerLogin from "./pages/customer/CustomerLogin";
+import CustomerSignUp from "./pages/customer/CustomerSignUp";
+import Booking from "./pages/customer/Booking";
+import Profile from "./pages/customer/Profile";
 
 // Superadmin Pages
 import SuperadminLogin from "./pages/superadmin/SuperadminLogin";
@@ -36,7 +36,6 @@ import SuperadminStaff from "./pages/superadmin/Staff";
 import SuperadminReports from "./pages/superadmin/Reports";
 import SuperadminSettings from "./pages/superadmin/Settings";
 import SuperadminAiConfig from "./pages/superadmin/AiConfig";
-import SuperadminHome from "./pages/superadmin/Home";
 import SuperadminMapServices from "./pages/superadmin/MapServices";
 import SuperadminMemPackage from "./pages/superadmin/MemPackage";
 import SuperadminReviews from "./pages/superadmin/Reviews";
@@ -49,13 +48,16 @@ function App() {
     <GoogleOAuthProvider clientId={googleClientId}>
       <Router>
         <Routes>
+          {/* --- LANDING PAGE REDIRECT --- */}
+          <Route path="/" element={<Navigate to="/customer" replace />} />
+
           {/* --- CUSTOMER ROUTES --- */}
-          <Route element={<CustomerLayout />}>
-            <Route path="/" element={<Home />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<SignUp />} />
-            <Route path="/booking" element={<Booking />} />
-            <Route path="/profile" element={<Profile />} />
+          <Route path="/customer" element={<CustomerLayout />}>
+            <Route index element={<Home />} />           
+            <Route path="login" element={<CustomerLogin />} />    
+            <Route path="signup" element={<CustomerSignUp />} />
+            <Route path="booking" element={<Booking />} />
+            <Route path="profile" element={<Profile />} />
           </Route>
 
           {/* --- OWNER AUTH --- */}
@@ -87,12 +89,13 @@ function App() {
             <Route path="reports" element={<SuperadminReports />} />
             <Route path="settings" element={<SuperadminSettings />} />
             <Route path="aiconfig" element={<SuperadminAiConfig />} />
-            <Route path="home" element={<SuperadminHome />} />
             <Route path="mapservices" element={<SuperadminMapServices />} />
             <Route path="mempackage" element={<SuperadminMemPackage />} />
             <Route path="reviews" element={<SuperadminReviews />} />
             <Route path="systemlogs" element={<SuperadminSystemLogs />} />
           </Route>
+
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>
     </GoogleOAuthProvider>

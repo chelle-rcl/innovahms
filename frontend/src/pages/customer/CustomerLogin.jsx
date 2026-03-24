@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Mail, Lock, Eye, EyeOff, ArrowRight, Facebook } from "lucide-react"; // Added Facebook icon
+import { Link, useNavigate, useLocation } from "react-router-dom"; 
+import { Mail, Lock, Eye, EyeOff, ArrowRight, Facebook } from "lucide-react"; 
 import { GoogleLogin } from "@react-oauth/google";
-import FacebookLogin from 'react-facebook-login'; // Standard import
+import FacebookLogin from 'react-facebook-login'; 
 
-export default function Login() {
+export default function CustomerLogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -23,7 +23,7 @@ export default function Login() {
       const data = await response.json();
       if (response.ok) {
         localStorage.setItem("user", JSON.stringify(data.user));
-        window.dispatchEvent(new Event("userUpdated")); // Better than a full reload
+        window.dispatchEvent(new Event("userUpdated")); 
         navigate("/");
       } else {
         setError(data.error || "Invalid email or password.");
@@ -162,7 +162,7 @@ export default function Login() {
         <div className="mt-8 border-t border-slate-200 pt-6 text-center">
           <p className="text-sm font-medium text-slate-800">
             Don't have an account?{" "}
-            <Link to="/signup" className="text-[#bc9a33] hover:text-[#a6882d] hover:underline decoration-2 underline-offset-4">
+            <Link to="/customer/signup" className="text-[#bc9a33] hover:text-[#a6882d] hover:underline decoration-2 underline-offset-4">
               Sign Up
             </Link>
           </p>

@@ -6,7 +6,7 @@ import {
   Briefcase 
 } from "lucide-react";
 
-export default function Header() {
+export default function CustomerHeader() {
   const [user, setUser] = useState(null);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [isLoginDropdownOpen, setIsLoginDropdownOpen] = useState(false);
@@ -124,13 +124,8 @@ export default function Header() {
     document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  const goToCustomerAccount = () => {
-    closeAllDropdowns();
-    navigate("/customer/dashboard");
-  };
-
   return (
-    <header className="fixed top-0 left-0 right-0 z-[1000] w-full border-b border-[#c9a84c]/20 bg-white/80 backdrop-blur-md shadow-sm transition-colors duration-300 dark:border-white/10 dark:bg-zinc-950/85">
+    <header className="top-0 left-0 right-0 z-[1000] w-full border-b border-[#c9a84c]/20 bg-white/80 backdrop-blur-md shadow-sm transition-colors duration-300 dark:border-white/10 dark:bg-zinc-950/85">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3 relative">
         
         {/* LEFT: LOGO */}
@@ -188,16 +183,6 @@ export default function Header() {
 
           <div className="h-8 w-[1px] bg-zinc-200 dark:bg-white/10 mx-1"></div>
 
-          {user && !user.isStaff && (
-            <button
-              type="button"
-              onClick={goToCustomerAccount}
-              className="hidden sm:inline-flex items-center rounded-full border border-[#c9a84c]/40 bg-[#c9a84c]/10 px-4 py-2 text-[11px] font-black uppercase tracking-widest text-[#a37f2e] transition-all hover:bg-[#c9a84c] hover:text-white dark:text-[#f0cf7f] dark:hover:text-[#1a160d]"
-            >
-              My Account
-            </button>
-          )}
-
           {user ? (
             <div className="relative">
               <button 
@@ -237,14 +222,7 @@ export default function Header() {
                   ) : (
                     <>
                       <Link
-                        to="/customer/dashboard"
-                        onClick={closeAllDropdowns}
-                        className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-white/5"
-                      >
-                        <User size={18} /> My Account Dashboard
-                      </Link>
-                      <Link
-                        to="/profile"
+                        to="/customer/profile"
                         onClick={closeAllDropdowns}
                         className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-white/5"
                       >
@@ -276,7 +254,7 @@ export default function Header() {
 
                 {isLoginDropdownOpen && (
                   <div className="absolute right-0 mt-3 w-64 origin-top-right rounded-2xl border border-zinc-200 bg-white p-2 shadow-2xl z-50 dark:border-white/10 dark:bg-zinc-900">
-                    <Link to="/login" onClick={closeAllDropdowns} className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-white/5">
+                    <Link to="/customer/login" onClick={closeAllDropdowns} className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-white/5">
                       <Users size={18} className="text-[#c9a84c]" /> Login as Customer
                     </Link>
                     <Link to="/owner/login" onClick={closeAllDropdowns} className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-white/5 border-t border-zinc-50 dark:border-white/5">
@@ -306,7 +284,7 @@ export default function Header() {
                 </button>
                 {isSignupDropdownOpen && (
                   <div className="absolute right-0 mt-3 w-64 origin-top-right rounded-2xl border border-zinc-200 bg-white p-2 shadow-2xl z-50 dark:border-white/10 dark:bg-zinc-900">
-                    <Link to="/signup" onClick={closeAllDropdowns} className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-white/5">
+                    <Link to="/customer/signup" onClick={closeAllDropdowns} className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-white/5">
                       <Users size={18} className="text-[#c9a84c]" /> Signup as Customer
                     </Link>
                     <Link to="/owner/signup" onClick={closeAllDropdowns} className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-white/5 border-t border-zinc-100 dark:border-white/5">
