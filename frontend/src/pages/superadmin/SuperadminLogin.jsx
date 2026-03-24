@@ -148,8 +148,10 @@ const SuperadminLogin = () => {
             </div>
 
             {feedback && (
-              <div className="flex items-center gap-3 text-red-500 text-xs font-bold bg-red-50 p-4 rounded-2xl border border-red-100 animate-shake">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              <div className="flex items-center gap-2 text-red-500 text-[10px] font-bold uppercase tracking-wider animate-shake pt-1">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
                 {feedback}
               </div>
             )}
