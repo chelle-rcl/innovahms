@@ -22,6 +22,8 @@ import OwnerSignUp from "./pages/owner/OwnerSignUp";
 
 // Customer Pages
 import Home from "./pages/customer/Home";
+import Features from "./pages/customer/Features";
+import AboutUs from "./pages/customer/AboutUs";
 import CustomerLogin from "./pages/customer/CustomerLogin";
 import CustomerSignUp from "./pages/customer/CustomerSignUp";
 import Booking from "./pages/customer/Booking";
@@ -56,6 +58,8 @@ function App() {
             <Route index element={<Home />} />           
             <Route path="login" element={<CustomerLogin />} />    
             <Route path="signup" element={<CustomerSignUp />} />
+            <Route path="features" element={<Features />} />
+            <Route path="aboutus" element={<AboutUs />} />
             <Route path="booking" element={<Booking />} />
             <Route path="profile" element={<Profile />} />
           </Route>

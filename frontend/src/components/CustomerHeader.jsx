@@ -99,16 +99,13 @@ export default function CustomerHeader() {
     e.preventDefault();
     closeAllDropdowns();
 
-    if (location.pathname !== "/") {
-      navigate("/");
+    if (location.pathname !== "/customer") {
+      navigate("/customer");
     }
 
     window.requestAnimationFrame(() => {
       window.scrollTo({ top: 0, behavior: "smooth" });
     });
-    setTimeout(() => {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }, 120);
   };
 
   const scrollToHomeSection = (sectionId) => {
@@ -143,22 +140,23 @@ export default function CustomerHeader() {
         {/* CENTER: NAVIGATION */}
         <nav className="hidden lg:flex items-center gap-1 rounded-full border border-zinc-200 bg-zinc-100/50 p-1 dark:border-white/10 dark:bg-white/5">
           {[
-            { name: "Suites", id: "suites" },
-            { name: "Hotels", id: "hotels" },
-            { name: "Promotions", id: "promotions" },
-            { name: "AI Concierge", id: "ai-concierge" }
+            { name: "Home", path: "/customer" },            
+            { name: "Features", path: "/customer/features" }, 
+            { name: "About Us", path: "/customer/aboutus" }, 
+            { name: "Vision Suites", path: "/customer/vision-suites" }
           ].map((link) => (
-            <a 
+            <Link 
               key={link.name} 
-              href={`#${link.id}`} 
-              onClick={(e) => {
-                e.preventDefault();
-                scrollToHomeSection(link.id);
-              }}
-              className="cursor-pointer rounded-full px-4 py-1.5 text-sm font-medium text-zinc-600 transition-all hover:bg-white hover:text-[#c9a84c] dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white"
+              to={link.path} 
+              onClick={closeAllDropdowns}
+              className={`cursor-pointer rounded-full px-4 py-1.5 text-sm font-medium transition-all 
+                ${location.pathname === link.path 
+                  ? "bg-white text-[#c9a84c] shadow-sm dark:bg-zinc-800 dark:text-white" 
+                  : "text-zinc-600 hover:text-[#c9a84c] dark:text-zinc-400 dark:hover:text-white"
+                }`}
             >
               {link.name}
-            </a>
+            </Link>
           ))}
         </nav>
 

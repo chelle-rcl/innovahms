@@ -1,6 +1,7 @@
 import React from "react";
 import { Outlet, Navigate, useLocation } from "react-router-dom";
 import CustomerHeader from "../components/CustomerHeader";
+import CustomerFooter from "../components/CustomerFooter";
 
 const CustomerLayout = () => {
   const location = useLocation();
@@ -15,7 +16,9 @@ const CustomerLayout = () => {
     location.pathname === "/customer" || 
     location.pathname === "/customer/" ||
     location.pathname === "/customer/login" || 
-    location.pathname === "/customer/signup";
+    location.pathname === "/customer/signup" ||
+    location.pathname === "/customer/features" ||
+    location.pathname === "/customer/aboutus";
 
   // 3. Security Gate
   if (!isAuthenticated && !isPublicPage) {
@@ -28,6 +31,7 @@ const CustomerLayout = () => {
       <main className="flex-grow"> 
         <Outlet />
       </main>
+      <CustomerFooter />
     </div>
   );
 };
