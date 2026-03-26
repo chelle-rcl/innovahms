@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { User, Mail, Phone, Lock, Building2, ArrowRight, ShieldCheck } from 'lucide-react';
+import { User, Mail, Phone, Lock, Building2, ArrowRight, ShieldCheck, MapPin } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function OwnerSignUp() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    firstName: '', lastName: '', email: '', contactNumber: '', password: '', hotelName: ''
+    firstName: '', lastName: '', email: '', contactNumber: '', password: '', hotelName: '', hotelAddress: '' 
   });
 
   const handleSubmit = async (e) => {
@@ -100,6 +100,13 @@ export default function OwnerSignUp() {
               <input type="text" placeholder="Hotel / Property Name" required 
                 className="w-full bg-[#0d0c0a] border border-white/5 rounded-xl py-3 pl-10 pr-4 text-sm text-white focus:border-[#bf9b30]/50 outline-none transition-all"
                 onChange={e => setFormData({...formData, hotelName: e.target.value})} />
+            </div>
+
+            <div className="relative">
+              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-[#bf9b30]/50" size={16} />
+              <input type="text" placeholder="Full Property Address" required 
+                className="w-full bg-[#0d0c0a] border border-white/5 rounded-xl py-3 pl-10 pr-4 text-sm text-white focus:border-[#bf9b30]/50 outline-none transition-all"
+                onChange={e => setFormData({...formData, hotelAddress: e.target.value})} />
             </div>
 
             <div className="relative">

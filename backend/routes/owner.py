@@ -16,6 +16,7 @@ def owner_signup():
     contact = data.get('contactNumber')
     password = data.get('password')
     hotel_name = data.get('hotelName')
+    hotel_address = data.get('hotelAddress')
 
     hashed_pw = generate_password_hash(password)
 
@@ -30,8 +31,8 @@ def owner_signup():
         owner_id = cur.fetchone()[0]
 
         cur.execute(
-            "INSERT INTO hotels (owner_id, hotel_name) VALUES (%s, %s)",
-            (owner_id, hotel_name)
+            "INSERT INTO hotels (owner_id, hotel_name, hotel_address) VALUES (%s, %s, %s)",
+            (owner_id, hotel_name, hotel_address)
         )
         
         conn.commit()

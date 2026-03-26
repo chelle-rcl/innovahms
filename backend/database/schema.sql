@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS hotels (
     id SERIAL PRIMARY KEY,
     owner_id INTEGER REFERENCES owners(id) ON DELETE CASCADE,
     hotel_name VARCHAR(150) NOT NULL,
-    hotel_address TEXT,
+    hotel_address TEXT NOT NULL, 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
