@@ -237,13 +237,12 @@ def search_rooms():
         conn = get_db_connection()
         cur = conn.cursor()
         
-        # SQL Logic: Filter by location (ILIKE for case-insensitive), 
-        # status, and capacity (adults + children)
         query = """
             SELECT 
                 r.id, r.room_number, r.room_name, r.room_type, 
                 r.price_per_night, r.max_adults, r.max_children, 
-                r.images, r.status, h.hotel_name, h.hotel_address
+                r.images, r.status, h.hotel_name, h.hotel_address,
+                r.description, r.amenities
             FROM rooms r
             JOIN hotels h ON r.hotel_id = h.id
             WHERE r.status = 'Available'
@@ -251,9 +250,7 @@ def search_rooms():
               AND r.max_adults >= %s
               AND r.max_children >= %s
         """
-        params = (f'%{location}%', adults, children)
-        
-        cur.execute(query, params)
+        cur.execute(query, (f'%{location}%', adults, children))
         rooms = cur.fetchall()
         
         results = []
@@ -268,7 +265,9 @@ def search_rooms():
                 "images": r[7] if r[7] else [],
                 "status": r[8],
                 "hotelName": r[9],
-                "location": r[10]
+                "location": r[10],
+                "description": r[11], # Added
+                "amenities": r[12]    # Added
             })
             
         cur.close()

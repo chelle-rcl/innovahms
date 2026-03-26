@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, MapPin, Calendar, Users, Filter, Plus, Minus, ChevronDown, Image as ImageIcon } from 'lucide-react';
+import { Search, MapPin, Calendar, Users, Filter, Plus, Minus, ChevronDown, Image as ImageIcon, X, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const API_BASE_URL = 'http://localhost:5000';
 
@@ -12,8 +12,9 @@ export default function BookingSearch() {
     children: 0
   });
 
-  // Price Range State
+  const [selectedRoom, setSelectedRoom] = useState(null);
   const [maxPrice, setMaxPrice] = useState(5000);
+  const [selectedTypes, setSelectedTypes] = useState([]);
   const [isGuestPickerOpen, setIsGuestPickerOpen] = useState(false);
   const guestPickerRef = useRef(null);
 
@@ -59,6 +60,20 @@ export default function BookingSearch() {
         setLoading(false);
     }
     };
+
+  const handleTypeChange = (type) => {
+    setSelectedTypes(prev => 
+      prev.includes(type) 
+        ? prev.filter(t => t !== type) 
+        : [...prev, type]
+    );
+  };
+
+  const filteredRooms = rooms.filter(room => {
+    const matchesPrice = room.price <= maxPrice;
+    const matchesType = selectedTypes.length === 0 || selectedTypes.includes(room.roomType);
+    return matchesPrice && matchesType;
+  });
 
   return (
     <div className="min-h-screen bg-zinc-50 pt-24 pb-12 dark:bg-zinc-950 transition-colors duration-300">
@@ -155,7 +170,12 @@ export default function BookingSearch() {
                   <h4 className="mb-3 text-sm font-semibold text-zinc-500">Room Type</h4>
                   {['Single', 'Double', 'Suite', 'Deluxe'].map(type => (
                     <label key={type} className="flex items-center gap-2 mb-2 text-sm text-zinc-600 dark:text-zinc-400 cursor-pointer hover:text-[#bf9b30] transition-colors">
-                      <input type="checkbox" className="accent-[#bf9b30] rounded" /> {type}
+                      <input 
+                        type="checkbox" 
+                        className="accent-[#bf9b30] rounded"
+                        checked={selectedTypes.includes(type)}
+                        onChange={() => handleTypeChange(type)}
+                      /> {type}
                     </label>
                   ))}
                 </div>
@@ -207,8 +227,8 @@ export default function BookingSearch() {
             </div>
             
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-2">
-            {rooms.length > 0 ? (
-                rooms.map((room) => (
+            {filteredRooms.length > 0 ? (
+              filteredRooms.map((room) => (
                 <div key={room.id} className="group flex flex-col rounded-3xl border border-zinc-200 bg-white overflow-hidden transition-all hover:shadow-xl dark:border-white/10 dark:bg-zinc-900">
                     <div className="relative h-48 overflow-hidden bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
                         {room.images && room.images[0] ? (
@@ -254,20 +274,188 @@ export default function BookingSearch() {
                         <span>•</span>
                         <span>Max {room.capacity.adults} Adults, {room.capacity.children} Children</span>
                         </div>
-                        <button className="text-sm font-bold text-[#bf9b30] hover:underline">View Details</button>
+                        <button 
+                          onClick={() => setSelectedRoom(room)} 
+                          className="text-sm font-bold text-[#bf9b30] hover:underline"
+                        >
+                          View Details
+                        </button>
                     </div>
                     </div>
                 </div>
                 ))
             ) : (
-                <div className="col-span-full py-20 text-center text-zinc-400">
-                {loading ? "Finding the best rooms for you..." : "No rooms found matching your criteria."}
-                </div>
+              <div className="col-span-full py-20 text-center text-zinc-400">
+                {loading ? "Finding the best rooms for you..." : "No rooms found matching your filters."}
+              </div>
             )}
-            </div>
+          </div>
           </main>
+        </div>
+      </div>
+      {/* Modal Overlay */}
+      {selectedRoom && (
+        <RoomDetailsModal 
+          room={selectedRoom} 
+          onClose={() => setSelectedRoom(null)} 
+        />
+      )}
+    </div> 
+  );
+}
+
+const RoomDetailsModal = ({ room, onClose }) => {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  if (!room) return null;
+
+  const images = room.images || [];
+  const hasImages = images.length > 0;
+  const hasMultipleImages = images.length > 1;
+
+  const nextImage = (e) => {
+    e.stopPropagation();
+    setCurrentImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+  };
+
+  const prevImage = (e) => {
+    e.stopPropagation();
+    setCurrentImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+  };
+
+  return (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+      <div className="relative w-full max-w-5xl max-h-[90vh] rounded-3xl bg-white shadow-2xl dark:bg-zinc-900 dark:border dark:border-white/10 flex flex-col overflow-hidden">
+        
+        <button 
+          onClick={onClose}
+          className="absolute right-6 top-6 z-[100] p-2 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-500 hover:text-zinc-800 dark:hover:text-white transition-colors shadow-sm"
+        >
+          <X size={24} />
+        </button>
+
+        <div className="overflow-y-auto w-full">
+          <div className="grid grid-cols-1 lg:grid-cols-5">
+            
+            {/* Image Gallery Side */}
+            <div className="relative lg:col-span-2 h-80 lg:h-auto bg-zinc-100 dark:bg-zinc-800 group flex items-center justify-center">
+              {hasImages ? (
+                <img 
+                  key={currentImageIndex}
+                  src={images[currentImageIndex]?.startsWith('http') ? images[currentImageIndex] : `${API_BASE_URL}${images[currentImageIndex]}`} 
+                  alt={`${room.roomName} - view ${currentImageIndex + 1}`}
+                  className="h-full w-full object-cover animate-in fade-in zoom-in-95 duration-500"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'flex';
+                  }}
+                />
+              ) : null}
+
+              {/* Placeholder Icon (Matches Search Results Style) */}
+              {(!hasImages || !images[currentImageIndex]) && (
+                <div className="flex flex-col items-center justify-center text-zinc-300 dark:text-zinc-600">
+                  <ImageIcon size={64} strokeWidth={1.5} />
+                </div>
+              )}
+
+              {hasMultipleImages && (
+                <>
+                  <button 
+                    onClick={prevImage}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/20 text-white backdrop-blur-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/40"
+                  >
+                    <ChevronLeft size={20} />
+                  </button>
+                  <button 
+                    onClick={nextImage}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/20 text-white backdrop-blur-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/40"
+                  >
+                    <ChevronRight size={20} />
+                  </button>
+
+                  <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-1.5">
+                    {images.map((_, idx) => (
+                      <div 
+                        key={idx}
+                        className={`h-1.5 rounded-full transition-all duration-300 ${
+                          idx === currentImageIndex ? 'w-6 bg-[#bf9b30]' : 'w-1.5 bg-white/50'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
+
+              <div className="absolute top-6 left-6">
+                <span className="inline-block px-4 py-1.5 rounded-full bg-black/40 text-white text-[10px] font-black uppercase tracking-widest backdrop-blur-md border border-white/20">
+                  {room.roomType}
+                </span>
+              </div>
+            </div>
+
+            {/* Content Side */}
+            <div className="lg:col-span-3 p-8 md:p-10 flex flex-col">
+              <div className="mb-6">
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#bf9b30]">{room.hotelName}</span>
+                <h2 className="text-3xl font-bold text-zinc-800 dark:text-white mt-1">{room.roomName || `Room ${room.roomNumber}`}</h2>
+                <div className="flex items-start gap-1 text-sm text-zinc-500 mt-2">
+                  <MapPin size={16} className="text-[#bf9b30] mt-0.5 shrink-0" />
+                  <span>{room.location}</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 mb-8">
+                <div className="p-3 rounded-2xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-white/5">
+                    <p className="text-[10px] uppercase font-bold text-zinc-400">Max Adults</p>
+                    <p className="text-lg font-bold dark:text-white">{room.capacity?.adults || 0} People</p>
+                </div>
+                <div className="p-3 rounded-2xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-white/5">
+                    <p className="text-[10px] uppercase font-bold text-zinc-400">Max Children</p>
+                    <p className="text-lg font-bold dark:text-white">{room.capacity?.children || 0} Children</p>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <div>
+                  <h4 className="text-xs font-black text-zinc-400 uppercase tracking-widest">Description</h4>
+                  <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400 italic">
+                    {room.description || "A minimalist sanctuary designed for comfort and tranquility."}
+                  </p>
+                </div>
+
+                <div>
+                  <h4 className="text-xs font-black text-zinc-400 uppercase tracking-widest">Amenities</h4>
+                  <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {room.amenities?.map((amenity, i) => (
+                      <div key={i} className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
+                          <CheckCircle2 size={14} className="text-[#bf9b30]" />
+                          {amenity}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-10 pt-6 border-t border-zinc-100 dark:border-white/5 flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-zinc-400 font-medium tracking-tight">Price per night</p>
+                  <div className="flex items-baseline gap-1">
+                      <span className="text-3xl font-black text-zinc-800 dark:text-white">${room.price}</span>
+                  </div>
+                </div>
+                
+                <button 
+                  onClick={() => alert(`Redirecting to payment for ${room.roomName}...`)}
+                  className="px-10 py-4 bg-[#bf9b30] text-white text-sm font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-[#bf9b30]/30 hover:bg-[#a68a3e] hover:-translate-y-0.5 transition-all active:scale-95"
+                >
+                  Book Now
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   );
-}
+};

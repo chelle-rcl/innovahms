@@ -445,7 +445,7 @@ const Rooms = () => {
                       <Users size={16} className="text-[#bf9b30]" /> {selectedRoom.maxAdults} Adults
                     </div>
                     <div className="flex items-center gap-1.5 text-sm font-bold text-slate-700">
-                      {selectedRoom.maxChildren} Kids
+                      {selectedRoom.maxChildren} Children
                     </div>
                   </div>
                 </div>
