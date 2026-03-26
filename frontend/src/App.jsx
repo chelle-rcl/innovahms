@@ -24,9 +24,9 @@ import OwnerSignUp from "./pages/owner/OwnerSignUp";
 import Home from "./pages/customer/Home";
 import Features from "./pages/customer/Features";
 import AboutUs from "./pages/customer/AboutUs";
+import BookingSearch from "./pages/customer/BookingSearch";
 import CustomerLogin from "./pages/customer/CustomerLogin";
 import CustomerSignUp from "./pages/customer/CustomerSignUp";
-import Booking from "./pages/customer/Booking";
 import Profile from "./pages/customer/Profile";
 
 // Superadmin Pages
@@ -60,7 +60,7 @@ function App() {
             <Route path="signup" element={<CustomerSignUp />} />
             <Route path="features" element={<Features />} />
             <Route path="aboutus" element={<AboutUs />} />
-            <Route path="booking" element={<Booking />} />
+            <Route path="bookingsearch" element={<BookingSearch />} />
             <Route path="profile" element={<Profile />} />
           </Route>
 

@@ -251,7 +251,7 @@ const Rooms = () => {
         </select>
 
         <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] font-bold">₱</span>
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] font-bold">$</span>
           <input 
             type="number" 
             placeholder="Max Price" 
@@ -334,7 +334,7 @@ const Rooms = () => {
 
                   {/* Price Column */}
                   <td className="px-6 py-4 font-serif text-[#bf9b30] font-bold">
-                    ₱{Number(room.price).toLocaleString()}
+                    ${Number(room.price).toLocaleString()}
                   </td>
 
                   {/* Status Column */}
@@ -433,7 +433,7 @@ const Rooms = () => {
                 </div>
                 <div className="text-right">
                   <p className="text-slate-400 text-xs font-bold uppercase tracking-tighter mb-1">Rate per Night</p>
-                  <p className="text-2xl font-bold text-[#bf9b30] font-serif">₱{Number(selectedRoom.price).toLocaleString()}</p>
+                  <p className="text-2xl font-bold text-[#bf9b30] font-serif">${Number(selectedRoom.price).toLocaleString()}</p>
                 </div>
               </div>
 

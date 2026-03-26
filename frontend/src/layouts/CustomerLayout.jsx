@@ -18,7 +18,8 @@ const CustomerLayout = () => {
     location.pathname === "/customer/login" || 
     location.pathname === "/customer/signup" ||
     location.pathname === "/customer/features" ||
-    location.pathname === "/customer/aboutus";
+    location.pathname === "/customer/aboutus" ||
+    location.pathname === "/customer/bookingsearch";
 
   // 3. Security Gate
   if (!isAuthenticated && !isPublicPage) {

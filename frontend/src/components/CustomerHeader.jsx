@@ -122,7 +122,7 @@ export default function CustomerHeader() {
   };
 
   return (
-    <header className="top-0 left-0 right-0 z-[1000] w-full border-b border-[#c9a84c]/20 bg-white/80 backdrop-blur-md shadow-sm transition-colors duration-300 dark:border-white/10 dark:bg-zinc-950/85">
+    <header className="sticky top-0 left-0 right-0 z-[1000] w-full border-b border-[#c9a84c]/20 bg-white/80 backdrop-blur-md shadow-sm transition-colors duration-300 dark:border-white/10 dark:bg-zinc-950/85">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3 relative">
         
         {/* LEFT: LOGO */}
@@ -163,14 +163,13 @@ export default function CustomerHeader() {
         {/* RIGHT: ACTIONS */}
         <div className="flex items-center gap-4 flex-shrink-0">
           
-          <div className="hidden md:flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 dark:border-white/10 dark:bg-zinc-900 focus-within:ring-1 focus-within:ring-[#c9a84c]/30 transition-all">
-            <Search size={16} className="text-zinc-400" />
-            <input 
-              type="text" 
-              placeholder="Explore..." 
-              className="bg-transparent text-sm outline-none dark:text-white w-24 focus:w-40 transition-all duration-300"
-            />
-          </div>
+          <button 
+            onClick={() => navigate("/customer/bookingsearch")}
+            className="hidden md:flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-4 py-1.5 transition-all hover:bg-zinc-100 hover:shadow-sm dark:border-white/10 dark:bg-zinc-900 dark:hover:bg-zinc-800"
+          >
+            <Search size={16} className="text-[#c9a84c]" />
+            <span className="text-sm font-medium text-zinc-600 dark:text-zinc-300">Find a Room</span>
+          </button>
 
           <button 
             onClick={toggleTheme}

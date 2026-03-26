@@ -223,3 +223,56 @@ def change_password():
     finally:
         if cur: cur.close()
         if conn: conn.close()
+
+@customer_bp.route('/api/search-rooms', methods=['GET'])
+def search_rooms():
+    # Get parameters from the request
+    location = request.args.get('location', '')
+    adults = int(request.args.get('adults', 1))
+    children = int(request.args.get('children', 0))
+    # Note: Check-in/out logic would usually check a 'bookings' table for conflicts.
+    # For now, we filter by the 'Available' status and capacity.
+
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        
+        # SQL Logic: Filter by location (ILIKE for case-insensitive), 
+        # status, and capacity (adults + children)
+        query = """
+            SELECT 
+                r.id, r.room_number, r.room_name, r.room_type, 
+                r.price_per_night, r.max_adults, r.max_children, 
+                r.images, r.status, h.hotel_name, h.hotel_address
+            FROM rooms r
+            JOIN hotels h ON r.hotel_id = h.id
+            WHERE r.status = 'Available'
+              AND h.hotel_address ILIKE %s
+              AND r.max_adults >= %s
+              AND r.max_children >= %s
+        """
+        params = (f'%{location}%', adults, children)
+        
+        cur.execute(query, params)
+        rooms = cur.fetchall()
+        
+        results = []
+        for r in rooms:
+            results.append({
+                "id": r[0],
+                "roomNumber": r[1],
+                "roomName": r[2],
+                "roomType": r[3],
+                "price": float(r[4]),
+                "capacity": {"adults": r[5], "children": r[6]},
+                "images": r[7] if r[7] else [],
+                "status": r[8],
+                "hotelName": r[9],
+                "location": r[10]
+            })
+            
+        cur.close()
+        conn.close()
+        return jsonify(results), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
