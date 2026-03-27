@@ -290,7 +290,7 @@ export default function BookingSearch() {
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold dark:text-white">Available Rooms</h2>
               <span className="text-sm text-zinc-400">
-                Under ${maxPrice} for {searchParams.adults} adults
+                Under ${maxPrice}
               </span>
             </div>
             

@@ -10,12 +10,12 @@ export default function CustomerFooter() {
           {/* Column 1: Brand */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-[#bf9b30] rounded-sm flex items-center justify-center shadow-sm">
-                 <span className="text-white text-[10px] font-black">IA</span>
-              </div>
-              <h2 className="text-xl font-black text-gray-900 tracking-tighter">
-                INNOVA-<span className="text-[#bf9b30]">HMS</span>
-              </h2>
+              {/* Replaced IA box and Text with the Logo Image */}
+              <img 
+                src="/images/logo.png" 
+                alt="Innova-HMS Logo" 
+                className="h-12 w-auto object-contain" 
+              />
             </div>
             <p className="text-sm leading-relaxed font-bold text-gray-500">
               Leading the transformation of hospitality through artificial intelligence and smart guest experiences.

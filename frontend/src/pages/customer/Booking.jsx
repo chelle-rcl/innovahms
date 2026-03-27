@@ -39,11 +39,38 @@ export default function Booking() {
     return <div className="pt-32 text-center">No booking data found. Please search again.</div>;
   }
 
+  const [notification, setNotification] = useState({
+    show: false,
+    message: ""
+  });
+
   const handleConfirmBooking = async (e) => {
     e.preventDefault();
-    // Logic to send to backend /api/bookings
+
+    let message = "";
+
+    if (formData.paymentOption === "pay_at_hotel") {
+      message = `
+        🎉 Thank you for your booking!
+        
+        Please note that payment must be completed on your check-in date.
+        Otherwise, your booking will be automatically cancelled.
+      `;
+    } else {
+      message = `
+        🎉 Thank you for your booking!
+        
+        Please complete your payment within 24 hours.
+        Otherwise, your booking will be automatically cancelled.
+      `;
+    }
+
+    setNotification({
+      show: true,
+      message
+    });
+
     console.log("Booking Confirmed:", { ...formData, room, searchParams, totalCost });
-    alert("Booking Successful!");
   };
 
   return (
@@ -226,6 +253,70 @@ export default function Booking() {
 
         </div>
       </div>
+
+      {/* Confirmed Notification */}
+      {notification.show && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center overflow-y-auto bg-black/60 p-4 backdrop-blur-md">
+          <div 
+            className="absolute inset-0 transition-opacity animate-in fade-in duration-300" 
+            onClick={() => setNotification({ show: false, message: "" })}
+          />
+          <div className="relative my-auto w-full max-w-md transform overflow-hidden rounded-[2.5rem] border border-white/10 bg-white p-8 shadow-2xl transition-all animate-in zoom-in-95 duration-300 dark:bg-zinc-900">
+            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-[#bf9b30]/10 text-[#bf9b30]">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#bf9b30] text-white shadow-lg shadow-[#bf9b30]/30">
+                <Calendar size={32} strokeWidth={2.5} />
+              </div>
+            </div>
+            <div className="text-center">
+              <h2 className="text-2xl font-black tracking-tight text-zinc-900 dark:text-white">
+                Booking Confirmed!
+              </h2>
+              <p className="mt-2 text-sm font-medium text-zinc-500">
+                Your booking at <span className="text-[#bf9b30]">{room.hotelName}</span> is secured.
+              </p>
+            </div>
+            <div className="mt-8 space-y-4 rounded-3xl bg-zinc-50 p-6 dark:bg-zinc-800/50">
+              <div className="flex justify-between text-xs">
+                <span className="font-bold uppercase tracking-widest text-zinc-400">Total Amount</span>
+                <span className="font-black text-zinc-900 dark:text-white">${totalCost}</span>
+              </div>
+              <div className="h-px w-full bg-zinc-200 dark:bg-white/5" />
+              <div className="space-y-2">
+                <p className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-300">
+                  {formData.paymentOption === "pay_at_hotel" 
+                    ? "Please complete your payment at the front desk upon arrival." 
+                    : "To keep your booking, please settle the payment via our online portal."} 
+                </p>
+                <div className="flex items-start gap-2 rounded-xl bg-amber-500/10 p-3 text-[11px] font-bold text-amber-600 dark:text-amber-400">
+                  <span className="mt-0.5">⚠️</span>
+                  <span>
+                    {formData.paymentOption === "pay_at_hotel"
+                      ? "Automatic cancellation applies if not paid on check-in date."
+                      : "Must be paid within 24 hours to avoid automatic cancellation."}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={() => {
+                setNotification({ show: false, message: "" });
+                navigate('/dashboard');
+              }}
+              className="mt-8 w-full rounded-2xl bg-[#bf9b30] py-4 text-sm font-black uppercase tracking-widest text-white shadow-lg shadow-[#bf9b30]/20 transition-all hover:bg-[#a68a3e] active:scale-95"
+            >
+              View My Bookings
+            </button>
+            
+            <button 
+              onClick={() => setNotification({ show: false, message: "" })}
+              className="mt-4 w-full text-xs font-bold uppercase tracking-widest text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
+            >
+              Dismiss
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
