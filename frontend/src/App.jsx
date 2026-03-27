@@ -25,6 +25,7 @@ import Home from "./pages/customer/Home";
 import Features from "./pages/customer/Features";
 import AboutUs from "./pages/customer/AboutUs";
 import BookingSearch from "./pages/customer/BookingSearch";
+import Booking from "./pages/customer/Booking";
 import CustomerLogin from "./pages/customer/CustomerLogin";
 import CustomerSignUp from "./pages/customer/CustomerSignUp";
 import Profile from "./pages/customer/Profile";
@@ -61,6 +62,7 @@ function App() {
             <Route path="features" element={<Features />} />
             <Route path="aboutus" element={<AboutUs />} />
             <Route path="bookingsearch" element={<BookingSearch />} />
+            <Route path="booking" element={<Booking />} />
             <Route path="profile" element={<Profile />} />
           </Route>
 

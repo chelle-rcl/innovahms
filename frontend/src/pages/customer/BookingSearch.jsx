@@ -1,9 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Search, MapPin, Calendar, Users, Filter, Plus, Minus, ChevronDown, Image as ImageIcon, X, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const API_BASE_URL = 'http://localhost:5000';
 
 export default function BookingSearch() {
+
+  const today = new Date().toISOString().split('T')[0];
+
   const [searchParams, setSearchParams] = useState({
     location: '',
     checkIn: '',
@@ -17,6 +21,16 @@ export default function BookingSearch() {
   const [selectedTypes, setSelectedTypes] = useState([]);
   const [isGuestPickerOpen, setIsGuestPickerOpen] = useState(false);
   const guestPickerRef = useRef(null);
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Select Date';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -41,24 +55,34 @@ export default function BookingSearch() {
     const [loading, setLoading] = useState(false);
 
     const handleSearch = async () => {
-    setLoading(true);
-    try {
-        const queryParams = new URLSearchParams({
-        location: searchParams.location,
-        adults: searchParams.adults,
-        children: searchParams.children,
-        checkIn: searchParams.checkIn,
-        checkOut: searchParams.checkOut
-        }).toString();
+      if (!searchParams.checkIn || !searchParams.checkOut) {
+        alert("Please select both check-in and check-out dates.");
+        return;
+      }
 
-        const response = await fetch(`/api/search-rooms?${queryParams}`);
-        const data = await response.json();
-        setRooms(data);
-    } catch (error) {
-        console.error("Search failed:", error);
-    } finally {
-        setLoading(false);
-    }
+      if (new Date(searchParams.checkOut) <= new Date(searchParams.checkIn)) {
+        alert("Check-out date must be after check-in date.");
+        return;
+      }
+
+      setLoading(true);
+      try {
+          const queryParams = new URLSearchParams({
+          location: searchParams.location,
+          adults: searchParams.adults,
+          children: searchParams.children,
+          checkIn: searchParams.checkIn,
+          checkOut: searchParams.checkOut
+          }).toString();
+
+          const response = await fetch(`/api/search-rooms?${queryParams}`);
+          const data = await response.json();
+          setRooms(data);
+      } catch (error) {
+          console.error("Search failed:", error);
+      } finally {
+          setLoading(false);
+      }
     };
 
   const handleTypeChange = (type) => {
@@ -78,11 +102,10 @@ export default function BookingSearch() {
   return (
     <div className="min-h-screen bg-zinc-50 pt-24 pb-12 dark:bg-zinc-950 transition-colors duration-300">
       <div className="mx-auto max-w-7xl px-6">
-        
-        {/* SEARCH BAR CARD */}
         <div className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-xl dark:border-white/10 dark:bg-zinc-900">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-4 lg:grid-cols-5 items-end">
             
+            {/* Location Input */}
             <div className="relative">
               <label className="mb-1.5 block text-[10px] font-black uppercase tracking-widest text-zinc-400">Location</label>
               <div className="flex h-12 items-center gap-2 rounded-xl border border-zinc-100 bg-zinc-50 px-3 dark:border-white/5 dark:bg-zinc-800/50 focus-within:ring-1 focus-within:ring-[#bf9b30]/50 transition-all">
@@ -100,10 +123,50 @@ export default function BookingSearch() {
             <div className="md:col-span-2">
               <label className="mb-1.5 block text-[10px] font-black uppercase tracking-widest text-zinc-400">Stay Dates</label>
               <div className="flex h-12 items-center gap-2 rounded-xl border border-zinc-100 bg-zinc-50 px-3 dark:border-white/5 dark:bg-zinc-800/50 focus-within:ring-1 focus-within:ring-[#bf9b30]/50 transition-all">
-                <Calendar size={18} className="text-[#bf9b30]" />
-                <input type="date" className="bg-transparent text-sm outline-none dark:text-white [color-scheme:light] dark:[color-scheme:dark]" />
+                <Calendar size={18} className="text-[#bf9b30] shrink-0" />
+                
+                {/* CHECK-IN INPUT */}
+                <div className="relative flex flex-1 items-center justify-between group">
+                  <div className="flex w-full items-center justify-between pr-2">
+                    <span className={`text-sm ${searchParams.checkIn ? 'font-bold dark:text-white' : 'text-zinc-400'}`}>
+                      {formatDate(searchParams.checkIn)}
+                    </span>
+                    <ChevronDown size={14} className="text-[#bf9b30]/40 group-hover:text-[#bf9b30] transition-colors" />
+                  </div>
+                  <input 
+                    type="date" 
+                    min={today} 
+                    value={searchParams.checkIn}
+                    onChange={(e) => {
+                      const newCheckIn = e.target.value;
+                      setSearchParams(prev => ({ 
+                        ...prev, 
+                        checkIn: newCheckIn,
+                        checkOut: (prev.checkOut && newCheckIn > prev.checkOut) ? '' : prev.checkOut 
+                      }));
+                    }}
+                    className="absolute inset-0 w-full opacity-0 cursor-pointer [color-scheme:light] dark:[color-scheme:dark]" 
+                  />
+                </div>
+
                 <span className="text-zinc-300 dark:text-zinc-600">|</span>
-                <input type="date" className="bg-transparent text-sm outline-none dark:text-white [color-scheme:light] dark:[color-scheme:dark]" />
+
+                {/* CHECK-OUT INPUT */}
+                <div className="relative flex flex-1 items-center justify-between group">
+                  <div className="flex w-full items-center justify-between pr-2">
+                    <span className={`text-sm ${searchParams.checkOut ? 'font-bold dark:text-white' : 'text-zinc-400'}`}>
+                      {formatDate(searchParams.checkOut)}
+                    </span>
+                    <ChevronDown size={14} className="text-[#bf9b30]/40 group-hover:text-[#bf9b30] transition-colors" />
+                  </div>
+                  <input 
+                    type="date" 
+                    min={searchParams.checkIn || today} 
+                    value={searchParams.checkOut}
+                    onChange={(e) => setSearchParams({ ...searchParams, checkOut: e.target.value })}
+                    className="absolute inset-0 w-full opacity-0 cursor-pointer [color-scheme:light] dark:[color-scheme:dark]" 
+                  />
+                </div>
               </div>
             </div>
 
@@ -146,8 +209,13 @@ export default function BookingSearch() {
 
             <div>
                 <button 
-                    onClick={handleSearch}
-                    className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#bf9b30] font-bold text-white shadow-lg shadow-[#bf9b30]/20 transition-all hover:bg-[#a68a3e] active:scale-95"
+                  onClick={handleSearch}
+                  disabled={!searchParams.checkIn || !searchParams.checkOut}
+                  className={`flex h-12 w-full items-center justify-center gap-2 rounded-xl font-bold text-white shadow-lg transition-all active:scale-95
+                    ${(!searchParams.checkIn || !searchParams.checkOut) 
+                      ? 'bg-zinc-300 cursor-not-allowed' 
+                      : 'bg-[#bf9b30] hover:bg-[#a68a3e] shadow-[#bf9b30]/20'
+                    }`}
                 >
                     <Search size={18} />
                     <span>{loading ? 'Searching...' : 'Search Rooms'}</span>
@@ -297,6 +365,7 @@ export default function BookingSearch() {
       {selectedRoom && (
         <RoomDetailsModal 
           room={selectedRoom} 
+          searchParams={searchParams} 
           onClose={() => setSelectedRoom(null)} 
         />
       )}
@@ -304,7 +373,18 @@ export default function BookingSearch() {
   );
 }
 
-const RoomDetailsModal = ({ room, onClose }) => {
+const RoomDetailsModal = ({ room, searchParams, onClose }) => {
+  const navigate = useNavigate();
+
+  const handleBookNow = () => {
+    navigate('/customer/booking', {
+      state: {
+        room,
+        searchParams
+      }
+    });
+  };
+
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   if (!room) return null;
@@ -446,7 +526,7 @@ const RoomDetailsModal = ({ room, onClose }) => {
                 </div>
                 
                 <button 
-                  onClick={() => alert(`Redirecting to payment for ${room.roomName}...`)}
+                  onClick={handleBookNow}
                   className="px-10 py-4 bg-[#bf9b30] text-white text-sm font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-[#bf9b30]/30 hover:bg-[#a68a3e] hover:-translate-y-0.5 transition-all active:scale-95"
                 >
                   Book Now
