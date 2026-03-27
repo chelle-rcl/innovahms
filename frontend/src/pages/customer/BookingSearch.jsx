@@ -408,7 +408,7 @@ const RoomDetailsModal = ({ room, onClose }) => {
               <div className="grid grid-cols-2 gap-4 mb-8">
                 <div className="p-3 rounded-2xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-white/5">
                     <p className="text-[10px] uppercase font-bold text-zinc-400">Max Adults</p>
-                    <p className="text-lg font-bold dark:text-white">{room.capacity?.adults || 0} People</p>
+                    <p className="text-lg font-bold dark:text-white">{room.capacity?.adults || 0} Adults</p>
                 </div>
                 <div className="p-3 rounded-2xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-white/5">
                     <p className="text-[10px] uppercase font-bold text-zinc-400">Max Children</p>
