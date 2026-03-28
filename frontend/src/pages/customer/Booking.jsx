@@ -47,30 +47,34 @@ export default function Booking() {
   const handleConfirmBooking = async (e) => {
     e.preventDefault();
 
-    let message = "";
+    const bookingPayload = {
+      customerId: loggedInUser.id,
+      roomId: room.id,
+      checkIn: searchParams.checkIn,
+      checkOut: searchParams.checkOut,
+      totalAmount: totalCost,
+      adults: searchParams.adults,
+      children: searchParams.children,
+      paymentType: formData.paymentOption
+    };
 
-    if (formData.paymentOption === "pay_at_hotel") {
-      message = `
-        🎉 Thank you for your booking!
-        
-        Please note that payment must be completed on your check-in date.
-        Otherwise, your booking will be automatically cancelled.
-      `;
-    } else {
-      message = `
-        🎉 Thank you for your booking!
-        
-        Please complete your payment within 24 hours.
-        Otherwise, your booking will be automatically cancelled.
-      `;
+    try {
+      const response = await fetch('/api/book', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bookingPayload)
+      });
+
+      if (response.ok) {
+        setNotification({ show: true, message: "" }); 
+      } else {
+        const errorData = await response.json();
+        alert(`Booking failed: ${errorData.error}`);
+      }
+    } catch (error) {
+      console.error("Error confirming booking:", error);
+      alert("An error occurred. Please try again.");
     }
-
-    setNotification({
-      show: true,
-      message
-    });
-
-    console.log("Booking Confirmed:", { ...formData, room, searchParams, totalCost });
   };
 
   return (
@@ -301,7 +305,7 @@ export default function Booking() {
             <button
               onClick={() => {
                 setNotification({ show: false, message: "" });
-                navigate('/dashboard');
+                navigate('/customer/MyBookings');
               }}
               className="mt-8 w-full rounded-2xl bg-[#bf9b30] py-4 text-sm font-black uppercase tracking-widest text-white shadow-lg shadow-[#bf9b30]/20 transition-all hover:bg-[#a68a3e] active:scale-95"
             >

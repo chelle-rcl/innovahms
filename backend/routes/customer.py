@@ -266,12 +266,152 @@ def search_rooms():
                 "status": r[8],
                 "hotelName": r[9],
                 "location": r[10],
-                "description": r[11], # Added
-                "amenities": r[12]    # Added
+                "description": r[11], 
+                "amenities": r[12]    
             })
             
         cur.close()
         conn.close()
         return jsonify(results), 200
     except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@customer_bp.route('/api/book', methods=['POST'])
+def create_booking():
+    data = request.json
+    customer_id = data.get('customerId')
+    room_id = data.get('roomId')
+    check_in = data.get('checkIn')
+    check_out = data.get('checkOut')
+    total_amount = data.get('totalAmount')
+    adults = data.get('adults')
+    children = data.get('children')
+    payment_type = data.get('paymentType') # 'pay_at_hotel' or 'online'
+
+    if not all([customer_id, room_id, check_in, check_out]):
+        return jsonify({"error": "Missing booking details"}), 400
+
+    conn = None
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        # 1. Insert into Bookings
+        cur.execute("""
+            INSERT INTO bookings (customer_id, room_id, check_in_date, check_out_date, total_amount, adults, children, payment_type, booking_status)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 'booked')
+            RETURNING id
+        """, (customer_id, room_id, check_in, check_out, total_amount, adults, children, payment_type))
+        
+        booking_id = cur.fetchone()[0]
+
+        # 2. Initialize a record in Payments (Status 'pending')
+        cur.execute("""
+            INSERT INTO payments (booking_id, amount, payment_status)
+            VALUES (%s, %s, 'pending')
+        """, (booking_id, total_amount))
+
+        # 3. Optional: Update room status to 'Occupied' (or 'Booked' if you add that status)
+        # cur.execute("UPDATE rooms SET status = 'Occupied' WHERE id = %s", (room_id,))
+
+        conn.commit()
+        cur.close()
+        conn.close()
+        return jsonify({"message": "Booking successful!", "bookingId": booking_id}), 201
+
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        return jsonify({"error": str(e)}), 500
+
+@customer_bp.route('/api/user-bookings/<int:user_id>', methods=['GET'])
+def get_user_bookings(user_id):
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        query = """
+            SELECT 
+                b.id, 
+                h.hotel_name, 
+                r.room_type, 
+                r.images[1] as room_image, 
+                b.check_in_date, 
+                b.check_out_date, 
+                b.booking_status, 
+                p.payment_status,
+                b.payment_type,
+                b.total_amount,
+                r.room_name,
+                b.adults,
+                b.children,
+                h.hotel_address,
+                r.price_per_night
+            FROM bookings b
+            JOIN rooms r ON b.room_id = r.id
+            JOIN hotels h ON r.hotel_id = h.id
+            LEFT JOIN payments p ON b.id = p.booking_id
+            WHERE b.customer_id = %s
+            ORDER BY b.created_at DESC
+        """
+        cur.execute(query, (user_id,))
+        rows = cur.fetchall()
+
+        bookings = []
+        for row in rows:
+            bookings.append({
+                "id": str(row[0]),
+                "hotelName": row[1],
+                "roomType": row[2],
+                "roomImage": row[3] if row[3] else "/static/default-room.jpg",
+                "checkIn": row[4].isoformat(),
+                "checkOut": row[5].isoformat(),
+                "status": row[6],
+                "paymentStatus": row[7] if row[7] else "pending",
+                "paymentType": row[8],
+                "totalAmount": float(row[9]),
+                "roomName": row[10],
+                "adults": row[11],
+                "children": row[12],
+                "hotelAddress": row[13],
+                "pricePerNight": float(row[14])
+            })
+
+        cur.close()
+        conn.close()
+        return jsonify(bookings), 200
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@customer_bp.route('/api/bookings/<int:booking_id>/cancel', methods=['PATCH'])
+def cancel_booking(booking_id):
+    conn = None
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        # 1. Update booking status
+        cur.execute("""
+            UPDATE bookings 
+            SET booking_status = 'cancelled', updated_at = CURRENT_TIMESTAMP 
+            WHERE id = %s
+        """, (booking_id,))
+
+        # 2. Update payment status if it exists
+        cur.execute("""
+            UPDATE payments 
+            SET payment_status = 'failed' 
+            WHERE booking_id = %s AND payment_status = 'pending'
+        """, (booking_id,))
+
+        conn.commit()
+        cur.close()
+        conn.close()
+        return jsonify({"message": "Booking cancelled successfully"}), 200
+
+    except Exception as e:
+        if conn:
+            conn.rollback()
         return jsonify({"error": str(e)}), 500
