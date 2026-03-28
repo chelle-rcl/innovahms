@@ -10,7 +10,6 @@ export default function CustomerFooter() {
           {/* Column 1: Brand */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              {/* Replaced IA box and Text with the Logo Image */}
               <img 
                 src="/images/logo.png" 
                 alt="Innova-HMS Logo" 
