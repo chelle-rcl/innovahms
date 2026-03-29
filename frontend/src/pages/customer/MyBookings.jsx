@@ -7,6 +7,7 @@ export default function MyBookings() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('upcoming');
+  const [payingId, setPayingId] = useState(null);
   const loggedInUser = JSON.parse(localStorage.getItem('user')) || {};
 
   useEffect(() => {
@@ -36,8 +37,32 @@ export default function MyBookings() {
     }
   };
 
-  const handlePayment = (booking) => {
-    navigate('/payment', { state: { booking } });
+  const handlePayment = async (booking) => {
+    setPayingId(booking.id);
+    try {
+      const nights = getNights(booking.checkIn, booking.checkOut);
+      const response = await fetch('/api/create-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          bookingId:   booking.id,
+          amount:      booking.totalAmount,
+          description: `${booking.roomName} - ${nights} night${nights !== 1 ? 's' : ''} at ${booking.hotelName}`
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.checkout_url) {
+        window.location.href = data.checkout_url; // redirect to PayMongo
+      } else {
+        alert('Could not start payment. Please try again.');
+      }
+    } catch (err) {
+      alert('Something went wrong. Please try again.');
+    } finally {
+      setPayingId(null);
+    }
   };
 
   const filteredBookings = bookings.filter(b => {
@@ -203,9 +228,13 @@ export default function MyBookings() {
                           {booking.paymentType === 'online' && booking.paymentStatus !== 'paid' && (
                             <button 
                               onClick={() => handlePayment(booking)}
-                              className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#bf9b30] py-3 text-xs font-bold text-white transition-all hover:scale-[1.02] active:scale-95 shadow-md shadow-yellow-900/10"
+                              disabled={payingId === booking.id}
+                              className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#bf9b30] py-3 text-xs font-bold text-white transition-all hover:scale-[1.02] active:scale-95 shadow-md shadow-yellow-900/10 disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100"
                             >
-                              <CreditCard size={14} /> Pay Now
+                              {payingId === booking.id 
+                                ? <><Loader2 size={14} className="animate-spin" /> Redirecting...</>
+                                : <><CreditCard size={14} /> Pay Now</>
+                              }
                             </button>
                           )}
                           <button 

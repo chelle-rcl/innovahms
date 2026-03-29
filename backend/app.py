@@ -2,9 +2,12 @@ from flask import Flask
 from flask_cors import CORS
 import os
 import atexit
+from dotenv import load_dotenv          
 from apscheduler.schedulers.background import BackgroundScheduler
 from routes import customer_bp, owner_bp, superadmin_bp
 from database.db import get_db_connection
+
+load_dotenv()                           
 
 app = Flask(__name__, static_folder='static')
 CORS(app)

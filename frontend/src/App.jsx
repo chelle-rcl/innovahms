@@ -29,6 +29,8 @@ import Booking from "./pages/customer/Booking";
 import MyBookings from "./pages/customer/MyBookings";
 import CustomerLogin from "./pages/customer/CustomerLogin";
 import CustomerSignUp from "./pages/customer/CustomerSignUp";
+import PaymentSuccess   from './pages/customer/PaymentSuccess';
+import PaymentCancelled from './pages//customer/PaymentCancelled';
 import Profile from "./pages/customer/Profile";
 
 // Superadmin Pages
@@ -65,6 +67,8 @@ function App() {
             <Route path="bookingsearch" element={<BookingSearch />} />
             <Route path="booking" element={<Booking />} />
             <Route path="mybookings" element={<MyBookings />} />
+            <Route path="paymentsuccess"   element={<PaymentSuccess />} />
+            <Route path="paymentcancelled" element={<PaymentCancelled />} />
             <Route path="profile" element={<Profile />} />
           </Route>
 

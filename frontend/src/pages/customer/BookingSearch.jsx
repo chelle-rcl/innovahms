@@ -323,7 +323,7 @@ export default function BookingSearch() {
                         )}
 
                         <div className="absolute top-4 right-4 rounded-full bg-white/90 px-3 py-1 text-xs font-bold text-[#bf9b30] backdrop-blur-md dark:bg-zinc-900/90">
-                            ${room.price} per night
+                            ₱{room.price} per night
                         </div>
                     </div>
                     

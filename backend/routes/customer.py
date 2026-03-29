@@ -3,6 +3,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
 import requests
+import base64 
+import os 
 from database.db import get_db_connection
 
 customer_bp = Blueprint('customer', __name__)
@@ -414,4 +416,76 @@ def cancel_booking(booking_id):
     except Exception as e:
         if conn:
             conn.rollback()
+        return jsonify({"error": str(e)}), 500
+
+@customer_bp.route('/api/create-checkout', methods=['POST'])
+def create_checkout():
+    data = request.get_json()
+    booking_id  = data.get('bookingId')
+    amount      = data.get('amount')
+    description = data.get('description')
+
+    secret_key   = os.environ.get('PAYMONGO_SECRET_KEY')
+    encoded_key  = base64.b64encode(f"{secret_key}:".encode()).decode()
+    frontend_url = os.environ.get('FRONTEND_URL', 'http://localhost:5173')
+
+    payload = {
+        "data": {
+            "attributes": {
+                "send_email_receipt": False,
+                "show_description": True,
+                "show_line_items": True,
+                "line_items": [{
+                    "currency": "PHP",
+                    "amount": int(float(amount) * 100),  # PHP → centavos
+                    "name": description,
+                    "quantity": 1
+                }],
+                "payment_method_types": ["card", "gcash", "paymaya"],
+                "success_url": f"{frontend_url}/customer/paymentsuccess?bookingId={booking_id}",
+                "cancel_url":  f"{frontend_url}/customer/paymentcancelled?bookingId={booking_id}",
+                "description": description
+            }
+        }
+    }
+
+    response = requests.post(
+        "https://api.paymongo.com/v1/checkout_sessions",
+        json=payload,
+        headers={
+            "Authorization": f"Basic {encoded_key}",
+            "Content-Type": "application/json"
+        }
+    )
+
+    result = response.json()
+
+    if response.status_code == 200:
+        checkout_url = result['data']['attributes']['checkout_url']
+        return jsonify({"checkout_url": checkout_url}), 200
+    else:
+        print("PayMongo error:", result)
+        return jsonify({"error": result}), 400
+
+
+@customer_bp.route('/api/bookings/<int:booking_id>/mark-paid', methods=['PATCH'])
+def mark_paid(booking_id):
+    conn = None
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        cur.execute("""
+            UPDATE payments 
+            SET payment_status = 'paid', paid_at = CURRENT_TIMESTAMP
+            WHERE booking_id = %s
+        """, (booking_id,))
+
+        conn.commit()
+        cur.close()
+        conn.close()
+        return jsonify({"message": "Payment marked as paid"}), 200
+
+    except Exception as e:
+        if conn: conn.rollback()
         return jsonify({"error": str(e)}), 500
