@@ -5,6 +5,7 @@ from google.auth.transport import requests as google_requests
 import requests
 import base64 
 import os 
+from utils.email_service import send_booking_confirmation_email
 from database.db import get_db_connection
 
 customer_bp = Blueprint('customer', __name__)
@@ -467,25 +468,92 @@ def create_checkout():
         print("PayMongo error:", result)
         return jsonify({"error": result}), 400
 
-
 @customer_bp.route('/api/bookings/<int:booking_id>/mark-paid', methods=['PATCH'])
 def mark_paid(booking_id):
     conn = None
     try:
         conn = get_db_connection()
         cur = conn.cursor()
-
+ 
+        # 1. Mark payment as paid
         cur.execute("""
             UPDATE payments 
             SET payment_status = 'paid', paid_at = CURRENT_TIMESTAMP
             WHERE booking_id = %s
         """, (booking_id,))
-
+ 
+        # 2. Fetch all booking details needed for the confirmation email
+        cur.execute("""
+            SELECT
+                c.email,
+                c.first_name,
+                c.last_name,
+                h.hotel_name,
+                h.hotel_address,
+                r.room_name,
+                r.room_type,
+                b.check_in_date,
+                b.check_out_date,
+                b.adults,
+                b.children,
+                b.total_amount,
+                b.payment_type,
+                p.payment_method
+            FROM bookings b
+            JOIN customers c ON b.customer_id = c.id
+            JOIN rooms r ON b.room_id = r.id
+            JOIN hotels h ON r.hotel_id = h.id
+            LEFT JOIN payments p ON b.id = p.booking_id
+            WHERE b.id = %s
+        """, (booking_id,))
+ 
+        row = cur.fetchone()
         conn.commit()
+ 
+        # 3. Send confirmation email if we have customer data
+        if row:
+            (
+                email, first_name, last_name,
+                hotel_name, hotel_address,
+                room_name, room_type,
+                check_in_date, check_out_date,
+                adults, children, total_amount,
+                payment_type, payment_method
+            ) = row
+ 
+            # Calculate number of nights
+            nights = (check_out_date - check_in_date).days
+ 
+            # Friendly payment method label
+            if payment_method:
+                method_label = payment_method.title()
+            elif payment_type == 'online':
+                method_label = "Online Payment (PayMongo)"
+            else:
+                method_label = "Pay at Hotel"
+ 
+            send_booking_confirmation_email(
+                to_email=email,
+                customer_name=f"{first_name} {last_name}",
+                booking_id=str(booking_id),
+                hotel_name=hotel_name,
+                hotel_address=hotel_address,
+                room_name=room_name,
+                room_type=room_type,
+                check_in=check_in_date.strftime("%B %d, %Y"),
+                check_out=check_out_date.strftime("%B %d, %Y"),
+                nights=nights,
+                adults=adults,
+                children=children,
+                total_amount=float(total_amount),
+                payment_method=method_label
+            )
+ 
         cur.close()
         conn.close()
         return jsonify({"message": "Payment marked as paid"}), 200
-
+ 
     except Exception as e:
-        if conn: conn.rollback()
+        if conn:
+            conn.rollback()
         return jsonify({"error": str(e)}), 500
