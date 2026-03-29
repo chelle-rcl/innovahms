@@ -17,7 +17,7 @@ export default function BookingSearch() {
   });
 
   const [selectedRoom, setSelectedRoom] = useState(null);
-  const [maxPrice, setMaxPrice] = useState(5000);
+  const [maxPrice, setMaxPrice] = useState(15000);
   const [selectedTypes, setSelectedTypes] = useState([]);
   const [isGuestPickerOpen, setIsGuestPickerOpen] = useState(false);
   const guestPickerRef = useRef(null);
@@ -255,30 +255,31 @@ export default function BookingSearch() {
                   <h4 className="mb-8 text-sm font-semibold text-zinc-500">Price Range</h4>
                   
                   <div className="relative px-2">
-                    {/* Dynamic Label */}
+                    {/* Dynamic Label - Tooltip */}
                     <div 
                       className="absolute -top-7 px-2 py-1 bg-[#bf9b30] text-white text-[10px] font-bold rounded-md shadow-md transition-all duration-75 after:content-[''] after:absolute after:top-full after:left-1/2 after:-ml-1 after:border-4 after:border-transparent after:border-t-[#bf9b30]"
                       style={{ 
-                        left: `${(maxPrice / 5000) * 100}%`,
+                        // Updated divisor from 5000 to 20000 to match the new 'max'
+                        left: `${(maxPrice / 20000) * 100}%`,
                         transform: 'translateX(-50%)'
                       }}
                     >
-                      ${maxPrice}
+                      ₱{maxPrice.toLocaleString()}
                     </div>
 
                     <input 
                       type="range" 
                       className="w-full h-1.5 bg-zinc-100 rounded-lg appearance-none cursor-pointer accent-[#bf9b30] dark:bg-zinc-800" 
                       min="0" 
-                      max="5000" 
-                      step="50"
+                      max="20000" 
+                      step="100"   
                       value={maxPrice}
                       onChange={(e) => setMaxPrice(parseInt(e.target.value))}
                     />
                     
                     <div className="flex justify-between text-[10px] font-bold text-zinc-400 mt-4 uppercase tracking-tighter">
-                      <span>Min: $0</span>
-                      <span>Max: $5000+</span>
+                      <span>Min: ₱0</span>
+                      <span>Max: ₱20,000+</span>
                     </div>
                   </div>
                 </div>
@@ -290,7 +291,7 @@ export default function BookingSearch() {
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold dark:text-white">Available Rooms</h2>
               <span className="text-sm text-zinc-400">
-                Under ${maxPrice}
+                Under ₱{maxPrice.toLocaleString()}
               </span>
             </div>
             
@@ -521,7 +522,7 @@ const RoomDetailsModal = ({ room, searchParams, onClose }) => {
                 <div>
                   <p className="text-xs text-zinc-400 font-medium tracking-tight">Price per night</p>
                   <div className="flex items-baseline gap-1">
-                      <span className="text-3xl font-black text-zinc-800 dark:text-white">${room.price}</span>
+                      <span className="text-3xl font-black text-zinc-800 dark:text-white">₱{room.price}</span>
                   </div>
                 </div>
                 

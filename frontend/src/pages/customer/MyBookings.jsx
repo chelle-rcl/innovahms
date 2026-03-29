@@ -213,11 +213,11 @@ export default function MyBookings() {
                       </div>
                       <div className="flex items-center justify-between text-sm">
                         <span className="flex items-center gap-2 text-zinc-500"><Receipt size={14}/> Price/night</span>
-                        <span className="font-bold dark:text-white">${booking.pricePerNight?.toLocaleString()}</span>
+                        <span className="font-bold dark:text-white">₱{booking.pricePerNight?.toLocaleString()}</span>
                       </div>
                       <div className="flex items-center justify-between text-sm">
                         <span className="flex items-center gap-2 text-zinc-500"><Receipt size={14}/> Total Price</span>
-                        <span className="text-lg font-black text-[#bf9b30]">${booking.totalAmount?.toLocaleString()}</span>
+                        <span className="text-lg font-black text-[#bf9b30]">₱{booking.totalAmount?.toLocaleString()}</span>
                       </div>
                     </div>
 

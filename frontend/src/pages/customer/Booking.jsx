@@ -238,11 +238,11 @@ export default function Booking() {
               <div className="mt-6 space-y-2 border-t border-zinc-100 pt-4 dark:border-white/5">
                 <div className="flex justify-between text-sm text-zinc-400">
                   <span>Price per night</span>
-                  <span>${room.price}</span>
+                  <span>₱{room.price}</span>
                 </div>
                 <div className="flex justify-between text-xl font-black text-[#bf9b30]">
                   <span>Total</span>
-                  <span>${totalCost}</span>
+                  <span>₱{totalCost}</span>
                 </div>
               </div>
 
