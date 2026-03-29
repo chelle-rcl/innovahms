@@ -296,7 +296,7 @@ export default function Booking() {
                   <span>
                     {formData.paymentOption === "pay_at_hotel"
                       ? "Automatic cancellation applies if not paid on check-in date."
-                      : "Must be paid within 24 hours to avoid automatic cancellation."}
+                      : "Payment must be completed by your check-in date to avoid automatic cancellation."}
                   </span>
                 </div>
               </div>

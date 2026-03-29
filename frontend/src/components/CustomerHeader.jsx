@@ -163,13 +163,29 @@ export default function CustomerHeader() {
         {/* RIGHT: ACTIONS */}
         <div className="flex items-center gap-4 flex-shrink-0">
           
-          <button 
-            onClick={() => navigate("/customer/bookingsearch")}
-            className="hidden md:flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-4 py-1.5 transition-all hover:bg-zinc-100 hover:shadow-sm dark:border-white/10 dark:bg-zinc-900 dark:hover:bg-zinc-800"
-          >
-            <Search size={16} className="text-[#c9a84c]" />
-            <span className="text-sm font-medium text-zinc-600 dark:text-zinc-300">Find a Room</span>
-          </button>
+          <div className="hidden md:flex items-center bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 rounded-full p-1 gap-0.5">
+            
+            <button
+              onClick={() => navigate("/customer/bookingsearch")}
+              className="flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all"
+            >
+              <Search size={14} className="text-[#c9a84c]" />
+              Find a Room
+            </button>
+
+            <div className="w-px h-4 bg-zinc-200 dark:bg-white/10" />
+
+            {user && !user.isStaff && (
+              <button
+                onClick={() => navigate("/customer/mybookings")}
+                className="flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium text-[#c9a84c] bg-[#c9a84c]/10 dark:bg-[#c9a84c]/10 hover:bg-[#c9a84c]/20 dark:hover:bg-[#c9a84c]/20 transition-all"
+              >
+                <Briefcase size={14} className="text-[#c9a84c]" />
+                My Bookings
+              </button>
+            )}
+
+          </div>
 
           <button 
             onClick={toggleTheme}

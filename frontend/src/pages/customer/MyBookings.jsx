@@ -40,16 +40,10 @@ export default function MyBookings() {
     navigate('/payment', { state: { booking } });
   };
 
-  // Filter Logic (Fixed to match backend 'booked' status)
   const filteredBookings = bookings.filter(b => {
-    const isBooked = b.status === 'booked'; 
-    const checkInDate = new Date(b.checkIn);
-    const checkOutDate = new Date(b.checkOut);
-    const now = new Date();
-
-    if (activeTab === 'upcoming') return isBooked && checkInDate > now;
-    if (activeTab === 'active') return isBooked && checkInDate <= now && checkOutDate >= now;
-    if (activeTab === 'past') return b.status === 'completed' || (isBooked && checkOutDate < now);
+    if (activeTab === 'upcoming') return b.status === 'booked';
+    if (activeTab === 'active')   return b.status === 'occupied';
+    if (activeTab === 'past')     return b.status === 'completed';
     if (activeTab === 'cancelled') return b.status === 'cancelled';
     return true;
   });
