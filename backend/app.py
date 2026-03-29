@@ -23,18 +23,40 @@ def update_booking_statuses():
         cur = conn.cursor()
 
         cur.execute("""
-            UPDATE bookings
+            UPDATE bookings b
+            SET booking_status = 'cancelled', updated_at = CURRENT_TIMESTAMP
+            FROM payments p
+            WHERE b.id = p.booking_id
+              AND b.booking_status = 'booked'
+              AND b.check_in_date < CURRENT_DATE
+              AND p.payment_status != 'paid'
+        """)
+
+        cur.execute("""
+            UPDATE payments p
+            SET payment_status = 'failed'
+            FROM bookings b
+            WHERE p.booking_id = b.id
+              AND b.booking_status = 'cancelled'
+              AND p.payment_status = 'pending'
+        """)
+
+        cur.execute("""
+            UPDATE bookings b
             SET booking_status = 'occupied', updated_at = CURRENT_TIMESTAMP
-            WHERE booking_status = 'booked'
-              AND check_in_date <= CURRENT_DATE
-              AND check_out_date > CURRENT_DATE
+            FROM payments p
+            WHERE b.id = p.booking_id
+              AND b.booking_status = 'booked'
+              AND b.check_in_date <= CURRENT_DATE
+              AND b.check_out_date > CURRENT_DATE
+              AND p.payment_status = 'paid'
         """)
 
         cur.execute("""
             UPDATE bookings
             SET booking_status = 'completed', updated_at = CURRENT_TIMESTAMP
             WHERE booking_status IN ('occupied', 'booked')
-            AND check_out_date <= CURRENT_DATE
+              AND check_out_date <= CURRENT_DATE
         """)
 
         conn.commit()

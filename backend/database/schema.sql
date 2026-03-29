@@ -80,7 +80,6 @@ CREATE TABLE IF NOT EXISTS bookings (
     -- Store the payment choice from the frontend
     payment_type VARCHAR(20) CHECK (payment_type IN ('pay_at_hotel', 'online')),
     
-    -- Track when it was created to handle the "24-hour" or "check-in day" expiry logic
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

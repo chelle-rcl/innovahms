@@ -176,7 +176,11 @@ export default function MyBookings() {
                         <span className="flex items-center gap-2 text-zinc-500"><Receipt size={14}/> Status</span>
                         <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase ${
                           booking.paymentStatus === 'paid' 
-                            ? 'bg-emerald-500/10 text-emerald-500' 
+                            ? 'bg-emerald-500/10 text-emerald-500'
+                            : booking.paymentStatus === 'failed'
+                            ? 'bg-red-500/10 text-red-500'
+                            : booking.paymentStatus === 'refunded'
+                            ? 'bg-blue-500/10 text-blue-500'
                             : 'bg-amber-500/10 text-amber-500'
                         }`}>
                           {booking.paymentStatus}
