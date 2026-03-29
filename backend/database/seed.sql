@@ -253,3 +253,60 @@ INSERT INTO payments (booking_id, amount, payment_method, payment_status, transa
 (10, 30000.00, 'GCash',        'refunded', 'TXN-2025-100010', '2025-10-01 10:05:00'),
 -- Booking 11 (Anna, Albay, booked, online) → paid upfront
 (11, 30000.00, 'Credit Card',  'paid',     'TXN-2026-030011', '2026-03-25 11:05:00');
+
+
+
+-- ============================================================
+-- Room Images Update
+-- Distributes 15 available images across 39 rooms
+-- Run this after seed for owners, hotels, rooms, customers, bookings, and payments
+-- ============================================================
+
+UPDATE rooms SET images = ARRAY['/static/uploads/rooms/683d76997d275fa571a04a07_pexels-pixabay-164595.jpg'] WHERE id = 1;
+UPDATE rooms SET images = ARRAY['/static/uploads/rooms/room-twin-bed-2520x1400.jpg'] WHERE id = 2;
+UPDATE rooms SET images = ARRAY['/static/uploads/rooms/30_02_2024_11_02_16Deluxe-Rooms1.jpg'] WHERE id = 3;
+UPDATE rooms SET images = ARRAY['/static/uploads/rooms/66d8769232fd9214f8806e80_BMH_studio_executive_suite@55e.jpg'] WHERE id = 4;
+UPDATE rooms SET images = ARRAY['/static/uploads/rooms/Landy_1515_King-guestroom_011-copy.jpg'] WHERE id = 5;
+
+UPDATE rooms SET images = ARRAY['/static/uploads/rooms/Superior-Hotel-Room.png'] WHERE id = 6;
+UPDATE rooms SET images = ARRAY['/static/uploads/rooms/room-twin-bed-2520x1400.jpg'] WHERE id = 7;
+UPDATE rooms SET images = ARRAY['/static/uploads/rooms/Deluxe-Room-The-Samilton-scaled.jpg'] WHERE id = 8;
+UPDATE rooms SET images = ARRAY['/static/uploads/rooms/Sofitel-Dubai-Wafi-Luxury-Room-Bedroom-Skyline-View-Image1_WEB.jpg'] WHERE id = 9;
+
+UPDATE rooms SET images = ARRAY['/static/uploads/rooms/hotel room with beachfront view.jpg'] WHERE id = 10;
+UPDATE rooms SET images = ARRAY['/static/uploads/rooms/683d76997d275fa571a04a07_pexels-pixabay-164595.jpg'] WHERE id = 11;
+UPDATE rooms SET images = ARRAY['/static/uploads/rooms/Signature-Seaview-King-Morning-390x260.jpg'] WHERE id = 12;
+UPDATE rooms SET images = ARRAY['/static/uploads/rooms/66d8769232fd9214f8806e80_BMH_studio_executive_suite@55e.jpg'] WHERE id = 13;
+UPDATE rooms SET images = ARRAY['/static/uploads/rooms/expedia_group-76645-181675777-222007.jpg'] WHERE id = 14;
+
+UPDATE rooms SET images = ARRAY['/static/uploads/rooms/image2_62.jpg'] WHERE id = 15;
+UPDATE rooms SET images = ARRAY['/static/uploads/rooms/Landy_1515_King-guestroom_011-copy.jpg'] WHERE id = 16;
+UPDATE rooms SET images = ARRAY['/static/uploads/rooms/30_02_2024_11_02_16Deluxe-Rooms1.jpg'] WHERE id = 17;
+
+UPDATE rooms SET images = ARRAY['/static/uploads/rooms/2310fe48a0f0bc1f.png'] WHERE id = 18;
+UPDATE rooms SET images = ARRAY['/static/uploads/rooms/hotel room with beachfront view.jpg'] WHERE id = 19;
+UPDATE rooms SET images = ARRAY['/static/uploads/rooms/laxctr-deluxe-queen.jpg'] WHERE id = 20;
+UPDATE rooms SET images = ARRAY['/static/uploads/rooms/Sofitel-Dubai-Wafi-Luxury-Room-Bedroom-Skyline-View-Image1_WEB.jpg'] WHERE id = 21;
+
+UPDATE rooms SET images = ARRAY['/static/uploads/rooms/Superior-Hotel-Room.png'] WHERE id = 22;
+UPDATE rooms SET images = ARRAY['/static/uploads/rooms/360_F_1726614751_5kRCR1CMGPUn2aqpdkfLtAxMuwtNjtzR.jpg'] WHERE id = 23;
+UPDATE rooms SET images = ARRAY['/static/uploads/rooms/Deluxe-Room-The-Samilton-scaled.jpg'] WHERE id = 24;
+UPDATE rooms SET images = ARRAY['/static/uploads/rooms/66d8769232fd9214f8806e80_BMH_studio_executive_suite@55e.jpg'] WHERE id = 25;
+
+UPDATE rooms SET images = ARRAY['/static/uploads/rooms/image2_62.jpg'] WHERE id = 26;
+UPDATE rooms SET images = ARRAY['/static/uploads/rooms/expedia_group-76645-181675777-222007.jpg'] WHERE id = 27;
+UPDATE rooms SET images = ARRAY['/static/uploads/rooms/Sofitel-Dubai-Wafi-Luxury-Room-Bedroom-Skyline-View-Image1_WEB.jpg'] WHERE id = 28;
+
+UPDATE rooms SET images = ARRAY['/static/uploads/rooms/683d76997d275fa571a04a07_pexels-pixabay-164595.jpg'] WHERE id = 29;
+UPDATE rooms SET images = ARRAY['/static/uploads/rooms/room-twin-bed-2520x1400.jpg'] WHERE id = 30;
+UPDATE rooms SET images = ARRAY['/static/uploads/rooms/laxctr-deluxe-queen.jpg'] WHERE id = 31;
+UPDATE rooms SET images = ARRAY['/static/uploads/rooms/Landy_1515_King-guestroom_011-copy.jpg'] WHERE id = 32;
+
+UPDATE rooms SET images = ARRAY['/static/uploads/rooms/2310fe48a0f0bc1f.png'] WHERE id = 33;
+UPDATE rooms SET images = ARRAY['/static/uploads/rooms/360_F_1726614751_5kRCR1CMGPUn2aqpdkfLtAxMuwtNjtzR.jpg'] WHERE id = 34;
+
+UPDATE rooms SET images = ARRAY['/static/uploads/rooms/hotel room with beachfront view.jpg'] WHERE id = 35;
+UPDATE rooms SET images = ARRAY['/static/uploads/rooms/Signature-Seaview-King-Morning-390x260.jpg'] WHERE id = 36;
+UPDATE rooms SET images = ARRAY['/static/uploads/rooms/laxctr-deluxe-queen.jpg'] WHERE id = 37;
+UPDATE rooms SET images = ARRAY['/static/uploads/rooms/66d8769232fd9214f8806e80_BMH_studio_executive_suite@55e.jpg'] WHERE id = 38;
+UPDATE rooms SET images = ARRAY['/static/uploads/rooms/Superior-Hotel-Room.png'] WHERE id = 39;
