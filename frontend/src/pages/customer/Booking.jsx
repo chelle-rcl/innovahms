@@ -282,7 +282,7 @@ export default function Booking() {
             <div className="mt-8 space-y-4 rounded-3xl bg-zinc-50 p-6 dark:bg-zinc-800/50">
               <div className="flex justify-between text-xs">
                 <span className="font-bold uppercase tracking-widest text-zinc-400">Total Amount</span>
-                <span className="font-black text-zinc-900 dark:text-white">${totalCost}</span>
+                <span className="font-black text-zinc-900 dark:text-white">₱{totalCost}</span>
               </div>
               <div className="h-px w-full bg-zinc-200 dark:bg-white/5" />
               <div className="space-y-2">
